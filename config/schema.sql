@@ -1,5 +1,7 @@
 touch config/schema.sql
 ```
+cd /Applications/XAMPP/xamppfiles/htdocs/Persistent-Waters-1
+
 ```
 Your Mac
 ├── XAMPP (runs PHP)
