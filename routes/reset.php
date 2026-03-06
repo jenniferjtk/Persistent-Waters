@@ -9,14 +9,12 @@ function handleReset(): void {
     $db = getDB();
     
     try {
-        // Delete in correct order to respect foreign keys
         $db->exec('DELETE FROM moves');
         $db->exec('DELETE FROM ships');
         $db->exec('DELETE FROM game_players');
         $db->exec('DELETE FROM games');
         $db->exec('DELETE FROM players');
         
-        // Reset auto-increment sequences
         $db->exec('ALTER SEQUENCE players_player_id_seq RESTART WITH 1');
         $db->exec('ALTER SEQUENCE games_game_id_seq RESTART WITH 1');
         $db->exec('ALTER SEQUENCE ships_ship_id_seq RESTART WITH 1');

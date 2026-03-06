@@ -25,24 +25,3 @@ function getDB(): PDO {
         exit;
     }
 }
-```
-
-**Your files should currently look like this:**
-```
-config/
-├── database.php  ← HAS the connection code above
-└── schema.sql    ← HAS all your CREATE TABLE statements
-
-helpers/
-├── response.php  ← HAS jsonResponse and errorResponse functions
-└── validation.php ← still empty for now
-
-routes/
-├── players.php   ← still empty
-├── games.php     ← still empty
-├── moves.php     ← still empty
-├── reset.php     ← still empty
-└── test.php      ← still empty
-
-index.php         ← HAS the router code
-.htaccess         ← HAS the rewrite rules
