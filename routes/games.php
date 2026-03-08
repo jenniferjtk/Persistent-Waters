@@ -450,27 +450,3 @@ function handleFire(int $gameId): void {
         errorResponse('Failed to fire', 500);
     }
 }
-
-function handleGetMoves(int $gameId): void {
-    $db = getDB();
-
-    try {
-        $stmt = $db->prepare('SELECT * FROM games WHERE game_id = ?');
-        $stmt->execute([$gameId]);
-        if (!$stmt->fetch()) errorResponse('Game not found', 404);
-
-        $stmt = $db->prepare('
-            SELECT player_id, row_pos AS row, col_pos AS col, result, created_at
-            FROM moves 
-            WHERE game_id = ? 
-            ORDER BY created_at ASC
-        ');
-        $stmt->execute([$gameId]);
-        $moves = $stmt->fetchAll();
-
-        jsonResponse($moves);
-
-    } catch (PDOException $e) {
-        errorResponse('Failed to get moves', 500);
-    }
-}
