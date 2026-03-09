@@ -1,32 +1,15 @@
-touch config/schema.sql
-```
-cd /Applications/XAMPP/xamppfiles/htdocs/Persistent-Waters-1
-
-```
-Your Mac
-├── XAMPP (runs PHP)
-├── PostgreSQL (runs locally via Homebrew)
-│   └── battleship database
-│       └── your 5 tables
-└── VS Code (your code)
-
-Render (later)
-├── PHP server (not set up yet)
-└── PostgreSQL database (not set up yet)
-    └── will need your tables created here too
-
-    '''
-    CREATE TABLE players (
+CREATE TABLE IF NOT EXISTS players (
     player_id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_games INTEGER DEFAULT 0,
     total_wins INTEGER DEFAULT 0,
     total_losses INTEGER DEFAULT 0,
-    total_moves INTEGER DEFAULT 0
+    total_moves INTEGER DEFAULT 0,
+    total_hits INTEGER DEFAULT 0
 );
 
-CREATE TABLE games (
+CREATE TABLE IF NOT EXISTS games (
     game_id SERIAL PRIMARY KEY,
     creator_id INTEGER NOT NULL REFERENCES players(player_id),
     grid_size INTEGER NOT NULL CHECK (grid_size >= 5 AND grid_size <= 15),
@@ -36,7 +19,7 @@ CREATE TABLE games (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE game_players (
+CREATE TABLE IF NOT EXISTS game_players (
     game_id INTEGER NOT NULL REFERENCES games(game_id),
     player_id INTEGER NOT NULL REFERENCES players(player_id),
     turn_order INTEGER NOT NULL,
@@ -46,7 +29,7 @@ CREATE TABLE game_players (
     PRIMARY KEY (game_id, player_id)
 );
 
-CREATE TABLE ships (
+CREATE TABLE IF NOT EXISTS ships (
     ship_id SERIAL PRIMARY KEY,
     game_id INTEGER NOT NULL REFERENCES games(game_id),
     player_id INTEGER NOT NULL REFERENCES players(player_id),
@@ -56,7 +39,7 @@ CREATE TABLE ships (
     UNIQUE (game_id, player_id, row_pos, col_pos)
 );
 
-CREATE TABLE moves (
+CREATE TABLE IF NOT EXISTS moves (
     move_id SERIAL PRIMARY KEY,
     game_id INTEGER NOT NULL REFERENCES games(game_id),
     player_id INTEGER NOT NULL REFERENCES players(player_id),
@@ -64,4 +47,4 @@ CREATE TABLE moves (
     col_pos INTEGER NOT NULL,
     result VARCHAR(10) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);'''
+);
