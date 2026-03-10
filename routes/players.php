@@ -57,8 +57,7 @@ function handleGetStats(int $playerId): void {
                 total_wins AS wins,
                 total_losses AS losses,
                 total_moves AS total_shots,
-                0 AS total_hits,
-                0.0 AS accuracy
+                total_hits
             FROM players 
             WHERE player_id = ?
         ');
@@ -69,9 +68,18 @@ function handleGetStats(int $playerId): void {
             errorResponse('Player not found', 404);
         }
 
-        // Calculate accuracy if we have shots
+        // Cast to correct types
+        $stats['games_played'] = (int)$stats['games_played'];
+        $stats['wins'] = (int)$stats['wins'];
+        $stats['losses'] = (int)$stats['losses'];
+        $stats['total_shots'] = (int)$stats['total_shots'];
+        $stats['total_hits'] = (int)$stats['total_hits'];
+
+        // Calculate accuracy
         if ($stats['total_shots'] > 0) {
-            $stats['accuracy'] = round($stats['total_hits'] / $stats['total_shots'], 3);
+            $stats['accuracy'] = (float)round($stats['total_hits'] / $stats['total_shots'], 3);
+        } else {
+            $stats['accuracy'] = 0.0;
         }
 
         jsonResponse($stats);
