@@ -27,7 +27,7 @@ function handleCreatePlayer(): void {
         $existing = $stmt->fetch();
 
         if ($existing) {
-            jsonResponse(['player_id' => (int)$existing['player_id']], 200);
+            jsonResponse(['player_id' => (int)$existing['player_id']], 409);
             return;
         }
 
