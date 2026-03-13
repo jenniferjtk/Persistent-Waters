@@ -1,104 +1,97 @@
-Persistent Waters
+# Persistent Waters
+### CPSC 3750 – Distributed Multiplayer Battleship System
 
-CPSC 3750 – Distributed Multiplayer Battleship System
+**Team:** Persistent Waters  
+**Live API:** https://persistent-waters.onrender.com  
+**Repository:** https://github.com/jenniferjtk/Persistent-Waters
 
-Team Name: Persistent Waters
+---
 
-⸻
+## Project Overview
 
-Project Overview
-
-Persistent Waters is a distributed multiplayer Battleship system designed for the CPSC 3750 capstone project. The system provides a server-side API that manages multiplayer game sessions, player identities, ship placement, turn-based gameplay, and persistent player statistics.
-
-The application follows a client/server architecture where the backend server exposes a JSON API that allows multiple players to create and join games, place ships, and perform moves in a turn-based environment. The system maintains persistent game state and player statistics using a relational PostgreSQL database.
+Persistent Waters is a distributed multiplayer Battleship system built for CPSC 3750. The system exposes a JSON REST API that manages multiplayer game sessions, player identities, ship placement, turn-based gameplay, and persistent player statistics across a relational PostgreSQL database.
 
 The project is developed in three phases:
 
-Phase 1 – Server and Database
-Implementation of the backend API, relational database schema, and game lifecycle logic.
+| Phase | Focus | Demo |
+|-------|-------|------|
+| Phase 1 | Server + Database API | March 31 / April 2 |
+| Phase 2 | Human Web Client | April 17 (on camera) |
+| Phase 3 | Autonomous Computer Player | April 21 / 23 |
 
-Phase 2 – Human Client
-Development of a web-based client that interacts with the API.
+---
 
-Phase 3 – Computer Player
-Implementation of an autonomous player that interacts with the public API without cheating.
+## Architecture
 
-⸻
+The backend is a modular PHP 8.2 application deployed via Docker on Render, backed by a PostgreSQL database.
 
-Architecture Summary
+```
+Persistent-Waters/
+├── index.php               # Single entry-point router
+├── router.php              # PHP dev server router (local use)
+├── Dockerfile              # Container config for Render deployment
+├── .htaccess               # Apache URL rewriting (local XAMPP)
+│
+├── config/
+│   ├── database.php        # PDO connection (reads DATABASE_URL env var)
+│   └── schema.sql          # Full table definitions with IF NOT EXISTS
+│
+├── routes/
+│   ├── players.php         # Player creation and stats
+│   ├── games.php           # Game lifecycle, placement, fire logic
+│   ├── moves.php           # Move history retrieval
+│   ├── reset.php           # Server state reset
+│   ├── setup.php           # One-time schema initializer
+│   └── test.php            # Deterministic test mode endpoints
+│
+└── helpers/
+    ├── response.php        # jsonResponse() and errorResponse() utilities
+    └── validation.php      # Shared input validation helpers
+```
 
-The system follows a lightweight modular backend architecture implemented in PHP.
+### Database Schema
 
-Core Components
+| Table | Purpose |
+|-------|---------|
+| `players` | Persistent player identity and lifetime statistics |
+| `games` | Game metadata: grid size, status, turn index |
+| `game_players` | Join table: player ↔ game with turn order and elimination state |
+| `ships` | Ship positions per player per game |
+| `moves` | Chronological shot log with timestamps |
 
-Router (index.php)
-All API requests are routed through a single entry point which parses the request path and dispatches to the appropriate route handler.
+All tables enforce relational integrity via foreign key constraints. `game_players` uses a composite primary key `(game_id, player_id)`. Player `username` is globally unique at the database level.
 
-Route Handlers
-routes/
-players.php
-games.php
-moves.php
-reset.php
-test.php
+---
 
-Each route module handles a specific category of API functionality.
+## API Reference
 
-Configuration
-config/
-database.php
-schema.sql
+All endpoints accept and return JSON. Base path: `/api`
 
-Database connection and schema definitions are maintained here.
+### System
 
-Helpers
-helpers/
-response.php
-validation.php
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/reset` | Clear all game data and reset sequences |
+| POST | `/api/setup` | Initialize database schema (run once on new deployment) |
 
-Shared utility functions for JSON responses and input validation.
+### Players
 
-Database Architecture
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/players` | Create a player. Server generates `player_id` — client must not supply one |
+| GET | `/api/players/{id}/stats` | Retrieve lifetime stats for a player |
 
-The system uses a relational PostgreSQL database with the following tables:
+**Create player request:**
+```json
+{ "username": "dan" }
+```
+**Create player response (201):**
+```json
+{ "player_id": 1 }
+```
 
-Players
-Stores persistent player identities and lifetime statistics.
-
-Games
-Stores metadata for each game including grid size, status, and turn index.
-
-GamePlayers
-Join table representing the many-to-many relationship between players and games.
-Tracks turn order, elimination status, and ship placement.
-
-Ships
-Stores ship positions for each player in a game.
-
-Moves
-Stores a chronological log of all shots fired in a game.
-
-API Description
-
-All API endpoints use JSON requests and responses.
-
-Base path:
-/api
-
-Player Endpoints
-
-Create player
-POST /api/players
-
-Response
-{
-  "player_id": 1
-}
-
-Get Player statistics
-GET /api/players/{id}/stats
-
-Response
+**Stats response:**
+```json
 {
   "games_played": 3,
   "wins": 1,
@@ -107,128 +100,121 @@ Response
   "total_hits": 9,
   "accuracy": 0.375
 }
+```
 
-Game Lifecycle Endpoints
+### Games
 
-Create game
-POST /api/games
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/games` | Create a game (`grid_size`: 5–15, `max_players` ≥ 1) |
+| POST | `/api/games/{id}/join` | Join a waiting game |
+| GET | `/api/games/{id}` | Get current game state |
+| POST | `/api/games/{id}/place` | Place exactly 3 ships (before game starts) |
+| POST | `/api/games/{id}/fire` | Fire at a coordinate (active games, correct turn only) |
+| GET | `/api/games/{id}/moves` | Full chronological move history |
 
-Join game
-POST /api/games/{id}/join
+**Fire response (active game):**
+```json
+{ "result": "hit", "next_player_id": 3, "game_status": "active" }
+```
+**Fire response (winning shot):**
+```json
+{ "result": "hit", "next_player_id": null, "game_status": "finished", "winner_id": 2 }
+```
 
-Get game state
-GET /api/games/{id}
+### Test Mode Endpoints
 
-Place ships
-POST /api/games/{id}/place
+Test mode endpoints require the header:
+```
+X-Test-Password: clemson-test-2026
+```
+Both `/api/test/` and `/test/` URL prefixes are supported. Both `X-Test-Password` and `X-Test-Mode` headers are accepted.
 
-Fire shot
-POST /api/games/{id}/fire
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/test/games/{id}/restart` | Reset a game's ships and moves without touching player stats |
+| POST | `/api/test/games/{id}/ships` | Place ships at deterministic coordinates for grading |
+| GET | `/api/test/games/{id}/board/{player_id}` | Reveal all ship positions and hit state |
 
-Move history
-GET /api/games/{id}/moves
+Test endpoints exist to enable deterministic automated grading. They do not affect player statistics.
 
-⸻
+---
 
-System Control
+## Validation Rules
 
-Reset server state
-POST /api/reset
+- Client must **not** supply `player_id` on player creation → 400
+- Duplicate username returns the existing `player_id` → 200
+- Joining the same game twice → 400
+- Joining a different game with the same name reuses the same identity
+- `grid_size` must be 5–15, `max_players` ≥ 1
+- Exactly 3 ships required per player, no overlapping coordinates
+- Firing out of bounds, out of turn, or duplicate coordinates → 400 / 403
+- Invalid `player_id` → 403, valid `player_id` but wrong game → 403
 
-⸻
+---
 
-Test Mode Endpoints
+## Deployment
 
-These endpoints are only accessible when test mode is enabled and require a test authentication header.
+The application runs in a Docker container on Render connected to a Render-managed PostgreSQL database.
 
-Restart game
-POST /api/test/games/{id}/restart
+**Environment variables required:**
 
-Deterministic ship placement
-POST /api/test/games/{id}/ships
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_URL` | Full PostgreSQL connection string (set by Render) |
+| `TEST_MODE` | `true` to enable test endpoints |
 
-Reveal board state
-GET /api/test/games/{id}/board/{player_id}
+**Local development:**
+```bash
+cd /path/to/Persistent-Waters
+php -S localhost:8000 router.php
+```
+Requires local PostgreSQL with `battleship` database and `battleship_user` credentials as defined in `config/database.php`.
 
-Test endpoints exist to allow deterministic automated grading and should not affect player statistics.
+---
 
-⸻
+## Team
 
-Team Members
+| Name | Role |
+|------|------|
+| Owen Schuyler | Backend / Architecture Lead |
+| Jennifer Tk | Frontend / Database |
 
-Owen Schuyler
-Jennifer Tk
+**Owen Schuyler — Backend / Architecture Lead**  
+Responsible for overall backend architecture, API contract definition, request/response structure, core game lifecycle logic, turn rotation and elimination rules, routing, and validation logic.
 
-⸻
+**Jennifer Tk — Frontend / Database**  
+Responsible for relational database schema design, PostgreSQL setup and migration, database query implementation, deployment infrastructure, and the Phase 2 web client interface and statistics display.
 
-AI Tools Used
+---
 
-The following AI tools are used to assist development:
+## AI Tools Used
 
-ChatGPT
-Used for architecture planning, API design validation, debugging assistance, and generating test scenarios.
+| Tool | Usage |
+|------|-------|
+| Claude (claude.ai) | Architecture planning, implementation assistance, debugging, code review, deployment troubleshooting |
+| ChatGPT | Architecture planning, API design validation, test scenario generation |
 
-Claude Code
-Used for implementation assistance, code review suggestions, and refactoring support.
+AI tools are used as engineering assistants. All architectural decisions, database schema design, validation logic, and testing strategies are owned and verified by the human developers. AI-generated output is always reviewed before integration.
 
-AI tools are used as assistants, while all architectural decisions, validation, and testing strategies are verified by the human developers.
+---
 
-⸻
+## Current Status (Phase 1 — Checkpoint A)
 
-Roles and Responsibilities
+**Completed:**
+- Full API routing structure
+- PostgreSQL schema with all constraints and foreign keys
+- Player identity endpoints (create, stats)
+- Game creation and join logic
+- Ship placement validation
+- Move execution with turn rotation and elimination
+- Move logging with timestamps
+- Player statistics (games, wins, losses, shots, hits, accuracy)
+- Test mode endpoints for deterministic grading
+- Docker deployment on Render
 
-Owen Schuyler – Backend / Architecture Lead
-
-Primary responsibilities:
-
-Design overall backend architecture
-Define API contract and request/response structure
-Design relational database schema
-Implement core game lifecycle logic
-Implement turn rotation and elimination rules
-Maintain API routing and validation logic
-Maintain project documentation and architecture descriptions
-
-Jennifer Tk – Frontend / Database
-
-Primary responsibilities:
-
-Design and implement user interface for the game client
-Manage frontend hosting and deployment
-Assist with relational database implementation
-Develop statistics display for players
-Assist with integration between frontend and backend API
-
-⸻
-
-AI Collaboration Philosophy
-
-AI tools are used to assist with boilerplate code generation, exploring implementation approaches, and generating test cases. However, AI-generated code is always reviewed and validated by the human developers.
-
-Benefits of AI-assisted development include faster exploration of architectural alternatives and rapid generation of test scenarios.
-
-Limitations include the potential for hallucinated or incorrect suggestions, which requires careful verification and disciplined testing.
-
-⸻
-
-Current Project Status
-
-Phase 1 development in progress.
-
-Completed so far:
-
-API routing structure
-Database schema design
-Player identity endpoints
-Game creation and join logic
-Ship placement validation
-Move execution logic
-Move logging and retrieval
-Test mode endpoints for deterministic grading
-
-Remaining Phase 1 work includes:
-
-Expanded validation and edge-case handling
-Comprehensive testing aligned with the autograder
-Deployment to a public server for grading
+**Remaining Phase 1 work:**
+- Expanded edge-case validation
+- Concurrency and stress testing
+- Final autograder alignment
 
