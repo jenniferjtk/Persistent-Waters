@@ -1,7 +1,7 @@
 <?php
 // routes/players.php
-// POST /api/players - create a new player
-// GET /api/players/{id}/stats - get player lifetime stats
+// POST /api/players  - create or retrieve a player by username
+// GET  /api/players/{id}/stats - get player lifetime stats
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
@@ -10,7 +10,7 @@ function handleCreatePlayer(): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
-    // Must have username, must NOT have player_id
+    // Client must NOT supply player_id
     if (isset($body['player_id'])) {
         errorResponse('player_id must not be supplied by client', 400);
     }
@@ -21,26 +21,21 @@ function handleCreatePlayer(): void {
     $username = trim($body['username']);
 
     try {
-        // Check if username already exists - reuse same player_id
+        // Identity reuse: same username → same player_id across games
         $stmt = $db->prepare('SELECT player_id FROM players WHERE username = ?');
         $stmt->execute([$username]);
         $existing = $stmt->fetch();
 
         if ($existing) {
-            jsonResponse(['player_id' => $existing['player_id']], 200);
+            jsonResponse(['player_id' => (int)$existing['player_id']], 200);
             return;
         }
 
-        // Create new player
-        $stmt = $db->prepare('
-            INSERT INTO players (username) 
-            VALUES (?) 
-            RETURNING player_id
-        ');
+        $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');
         $stmt->execute([$username]);
         $player = $stmt->fetch();
 
-        jsonResponse(['player_id' => $player['player_id']], 201);
+        jsonResponse(['player_id' => (int)$player['player_id']], 201);
 
     } catch (PDOException $e) {
         errorResponse('Failed to create player', 500);
@@ -52,13 +47,13 @@ function handleGetStats(int $playerId): void {
 
     try {
         $stmt = $db->prepare('
-            SELECT 
-                total_games AS games_played,
-                total_wins AS wins,
+            SELECT
+                total_games  AS games_played,
+                total_wins   AS wins,
                 total_losses AS losses,
-                total_moves AS total_shots,
+                total_moves  AS total_shots,
                 total_hits
-            FROM players 
+            FROM players
             WHERE player_id = ?
         ');
         $stmt->execute([$playerId]);
@@ -68,21 +63,19 @@ function handleGetStats(int $playerId): void {
             errorResponse('Player not found', 404);
         }
 
-        // Cast to correct types
-        $stats['games_played'] = (int)$stats['games_played'];
-        $stats['wins'] = (int)$stats['wins'];
-        $stats['losses'] = (int)$stats['losses'];
-        $stats['total_shots'] = (int)$stats['total_shots'];
-        $stats['total_hits'] = (int)$stats['total_hits'];
+        $totalShots = (int)$stats['total_shots'];
+        $totalHits  = (int)$stats['total_hits'];
 
-        // Calculate accuracy
-        if ($stats['total_shots'] > 0) {
-            $stats['accuracy'] = (float)round($stats['total_hits'] / $stats['total_shots'], 3);
-        } else {
-            $stats['accuracy'] = 0.0;
-        }
-
-        jsonResponse($stats);
+        jsonResponse([
+            'games_played' => (int)$stats['games_played'],
+            'wins'         => (int)$stats['wins'],
+            'losses'       => (int)$stats['losses'],
+            'total_shots'  => $totalShots,
+            'total_hits'   => $totalHits,
+            'accuracy'     => $totalShots > 0
+                                ? round($totalHits / $totalShots, 3)
+                                : 0.0
+        ]);
 
     } catch (PDOException $e) {
         errorResponse('Failed to get stats', 500);
