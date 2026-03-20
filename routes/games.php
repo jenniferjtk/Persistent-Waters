@@ -209,7 +209,7 @@ function handleFire(int $gameId): void {
         $game = $stmt->fetch();
 
         if (!$game)                       errorResponse('Game not found', 404);
-        if ($game['status'] !== 'active') errorResponse('Game is not active', 403);
+        if ($game['status'] !== 'active') errorResponse('Game is not active', 400);
 
         // Bounds check first
         if ($row < 0 || $row >= $game['grid_size'] || $col < 0 || $col >= $game['grid_size']) {
