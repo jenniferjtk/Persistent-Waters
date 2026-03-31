@@ -73,7 +73,7 @@ function handleGetStats(int $playerId): void {
             'total_shots'  => $totalShots,
             'total_hits'   => $totalHits,
             'accuracy'     => $totalShots > 0
-                                ? round($totalHits / $totalShots, 3)
+                                ? (float)round($totalHits / $totalShots, 3)
                                 : 0.0
         ]);
 
