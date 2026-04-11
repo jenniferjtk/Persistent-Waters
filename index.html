@@ -72,15 +72,11 @@
 
     /* ── VIEWS ── */
     .view {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      z-index: 1;
-      padding: 2rem;
-      overflow-y: auto;
+    display: none;
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    padding: 2rem;
     }
     .view.active { display: block; }
 
@@ -972,8 +968,9 @@
     // ══════════════════════════════════════════════
     function showView(name) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById('view-' + name).classList.add('active');
-    window.scrollTo(0, 0);
+    const target = document.getElementById('view-' + name);
+    target.classList.add('active');
+    target.scrollIntoView({ behavior: 'smooth' });
     const navbar = document.getElementById('navbar');
     navbar.style.display = (name === 'register') ? 'none' : 'flex';
     if (name === 'stats') loadStats();
