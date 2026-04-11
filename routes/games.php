@@ -13,23 +13,26 @@ function handleGetGames(): void {
             SELECT
                 g.game_id,
                 g.grid_size,
+                g.max_players,
                 g.status,
                 g.current_turn_index,
                 COUNT(gp.player_id) FILTER (WHERE gp.is_eliminated = FALSE) AS active_players
             FROM games g
             LEFT JOIN game_players gp ON gp.game_id = g.game_id
+            WHERE g.status = \'waiting\'
             GROUP BY g.game_id
-            ORDER BY g.game_id ASC
+            ORDER BY g.game_id DESC
+            LIMIT 50
         ');
 
         $games = [];
         foreach ($stmt->fetchAll() as $row) {
             $games[] = [
-                'game_id'            => (int)$row['game_id'],
-                'grid_size'          => (int)$row['grid_size'],
-                'status'             => $row['status'],
-                'current_turn_index' => (int)$row['current_turn_index'],
-                'active_players'     => (int)$row['active_players'],
+                'game_id'        => (int)$row['game_id'],
+                'grid_size'      => (int)$row['grid_size'],
+                'max_players'    => (int)$row['max_players'],
+                'status'         => $row['status'],
+                'active_players' => (int)$row['active_players'],
             ];
         }
 
