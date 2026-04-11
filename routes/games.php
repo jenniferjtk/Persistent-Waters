@@ -73,9 +73,6 @@ function handleCreateGame(): void {
         $stmt->execute([$creatorId, $gridSize, $maxPlayers]);
         $gameId = $stmt->fetch()['game_id'];
 
-        $stmt = $db->prepare('INSERT INTO game_players (game_id, player_id, turn_order) VALUES (?, ?, 0)');
-        $stmt->execute([$gameId, $creatorId]);
-
         $db->commit();
         jsonResponse(['game_id' => $gameId], 201);
 
@@ -106,13 +103,13 @@ function handleJoinGame(int $gameId): void {
 
         $stmt = $db->prepare('SELECT player_id FROM game_players WHERE game_id = ? AND player_id = ?');
         $stmt->execute([$gameId, $playerId]);
-        if ($stmt->fetch()) errorResponse('Player already in this game', 400);
+        if ($stmt->fetch()) errorResponse('Player already in this game', 409);
 
         $stmt = $db->prepare('SELECT COUNT(*) as count FROM game_players WHERE game_id = ?');
         $stmt->execute([$gameId]);
         $count = (int)$stmt->fetch()['count'];
 
-        if ($count >= $game['max_players']) errorResponse('Game is full', 400);
+        if ($count >= $game['max_players']) errorResponse('Game is full', 409);
 
         $stmt = $db->prepare('INSERT INTO game_players (game_id, player_id, turn_order) VALUES (?, ?, ?)');
         $stmt->execute([$gameId, $playerId, $count]);
