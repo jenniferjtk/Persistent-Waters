@@ -5,10 +5,26 @@ require_once __DIR__ . '/../helpers/response.php';
 define('TEST_PASSWORD', 'clemson-test-2026');
 
 function checkTestAuth(): void {
-    $headers = getallheaders();
+    $headers = [];
+    if (function_exists('getallheaders')) {
+        $headers = getallheaders();
+    }
+
+    if (!is_array($headers)) {
+        $headers = [];
+    }
+
+    foreach ($_SERVER as $key => $value) {
+        if (str_starts_with($key, 'HTTP_')) {
+            $name = str_replace('_', '-', substr($key, 5));
+            $headers[$name] = $value;
+        }
+    }
+
+    $headers = array_change_key_case($headers, CASE_LOWER);
     // Accept both header names
-    $password = $headers['X-Test-Password'] 
-        ?? $headers['X-Test-Mode'] 
+    $password = $headers['x-test-password']
+        ?? $headers['x-test-mode']
         ?? '';
     if ($password !== TEST_PASSWORD) {
         errorResponse('Forbidden', 403);

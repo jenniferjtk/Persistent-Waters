@@ -43,14 +43,13 @@ function handleCreatePlayer(): void {
     $username = trim($body['username']);
 
     try {
-        // Identity reuse: same username → same player_id across games
+        // Duplicate usernames are not allowed.
         $stmt = $db->prepare('SELECT player_id FROM players WHERE username = ?');
         $stmt->execute([$username]);
         $existing = $stmt->fetch();
 
         if ($existing) {
-            jsonResponse(['player_id' => (int)$existing['player_id']], 200);
-            return;
+            errorResponse('Username already exists', 409);
         }
 
         $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');

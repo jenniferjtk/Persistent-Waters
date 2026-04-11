@@ -74,7 +74,11 @@ function handleCreateGame(): void {
         $gameId = $stmt->fetch()['game_id'];
 
         $db->commit();
-        jsonResponse(['game_id' => $gameId], 201);
+        jsonResponse([
+            'game_id'   => (int)$gameId,
+            'status'    => 'waiting',
+            'grid_size' => $gridSize
+        ], 201);
 
     } catch (PDOException $e) {
         $db->rollBack();
@@ -114,7 +118,7 @@ function handleJoinGame(int $gameId): void {
         $stmt = $db->prepare('INSERT INTO game_players (game_id, player_id, turn_order) VALUES (?, ?, ?)');
         $stmt->execute([$gameId, $playerId, $count]);
 
-        jsonResponse(['status' => 'joined', 'game_id' => $gameId], 200);
+        jsonResponse(['status' => 'joined', 'game_id' => $gameId, 'player_id' => $playerId], 200);
 
     } catch (PDOException $e) {
         errorResponse('Failed to join game', 500);
