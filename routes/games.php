@@ -5,6 +5,10 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 
+function gameBool(mixed $value): bool {
+    return $value === true || $value === 1 || $value === '1' || $value === 't';
+}
+
 function handleGetGames(): void {
     $db = getDB();
 
@@ -152,6 +156,173 @@ function handleGetGame(int $gameId): void {
 
     } catch (PDOException $e) {
         errorResponse('Failed to get game', 500);
+    }
+}
+
+function handleGetGamePlayers(int $gameId): void {
+    $db = getDB();
+
+    try {
+        $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
+        $stmt->execute([$gameId]);
+        if (!$stmt->fetch()) errorResponse('Game not found', 404);
+
+        $stmt = $db->prepare('
+            SELECT
+                gp.player_id,
+                p.username,
+                gp.turn_order,
+                gp.ships_placed,
+                gp.is_eliminated,
+                gp.joined_at
+            FROM game_players gp
+            JOIN players p ON p.player_id = gp.player_id
+            WHERE gp.game_id = ?
+            ORDER BY gp.turn_order ASC
+        ');
+        $stmt->execute([$gameId]);
+
+        $players = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $players[] = [
+                'id'            => (int)$row['player_id'],
+                'player_id'     => (int)$row['player_id'],
+                'username'      => $row['username'],
+                'turn_order'    => (int)$row['turn_order'],
+                'ships_placed'  => gameBool($row['ships_placed']),
+                'is_eliminated' => gameBool($row['is_eliminated']),
+                'joined_at'     => $row['joined_at'],
+            ];
+        }
+
+        jsonResponse(['players' => $players], 200);
+    } catch (PDOException $e) {
+        errorResponse('Failed to get game players', 500);
+    }
+}
+
+function handleGetGameBoards(int $gameId): void {
+    $db = getDB();
+
+    try {
+        $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
+        $stmt->execute([$gameId]);
+        if (!$stmt->fetch()) errorResponse('Game not found', 404);
+
+        $stmt = $db->prepare('
+            SELECT
+                gp.player_id,
+                p.username,
+                gp.turn_order,
+                gp.is_eliminated,
+                gp.ships_placed
+            FROM game_players gp
+            JOIN players p ON p.player_id = gp.player_id
+            WHERE gp.game_id = ?
+            ORDER BY gp.turn_order ASC
+        ');
+        $stmt->execute([$gameId]);
+        $players = $stmt->fetchAll();
+
+        $stmt = $db->prepare('
+            SELECT player_id, row_pos AS row, col_pos AS col, is_hit
+            FROM ships
+            WHERE game_id = ?
+            ORDER BY player_id ASC, row_pos ASC, col_pos ASC
+        ');
+        $stmt->execute([$gameId]);
+        $shipsByPlayer = [];
+        foreach ($stmt->fetchAll() as $ship) {
+            $playerId = (int)$ship['player_id'];
+            if (!isset($shipsByPlayer[$playerId])) {
+                $shipsByPlayer[$playerId] = [];
+            }
+            $shipsByPlayer[$playerId][] = [
+                'row'    => (int)$ship['row'],
+                'col'    => (int)$ship['col'],
+                'is_hit' => gameBool($ship['is_hit']),
+            ];
+        }
+
+        $stmt = $db->prepare('
+            SELECT player_id, row_pos AS row, col_pos AS col, result, created_at
+            FROM moves
+            WHERE game_id = ?
+            ORDER BY created_at ASC, move_id ASC
+        ');
+        $stmt->execute([$gameId]);
+        $moves = [];
+        foreach ($stmt->fetchAll() as $move) {
+            $moves[] = [
+                'player_id'  => (int)$move['player_id'],
+                'row'        => (int)$move['row'],
+                'col'        => (int)$move['col'],
+                'result'     => $move['result'],
+                'created_at' => $move['created_at'],
+            ];
+        }
+
+        $boards = [];
+        foreach ($players as $player) {
+            $playerId = (int)$player['player_id'];
+            $ships = $shipsByPlayer[$playerId] ?? [];
+            $hits = array_values(array_filter($ships, fn($ship) => $ship['is_hit']));
+
+            $boards[] = [
+                'id'            => $playerId,
+                'player_id'     => $playerId,
+                'username'      => $player['username'],
+                'turn_order'    => (int)$player['turn_order'],
+                'is_eliminated' => gameBool($player['is_eliminated']),
+                'ships_placed'  => gameBool($player['ships_placed']),
+                'ships'         => $ships,
+                'hits'          => $hits,
+                'moves'         => $moves,
+            ];
+        }
+
+        jsonResponse(['boards' => $boards], 200);
+    } catch (PDOException $e) {
+        errorResponse('Failed to get game boards', 500);
+    }
+}
+
+function handleGetShips(int $gameId): void {
+    $db = getDB();
+    $playerId = (int)($_GET['player_id'] ?? $_GET['playerId'] ?? 0);
+
+    if (!$playerId) errorResponse('player_id is required', 400);
+
+    try {
+        $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
+        $stmt->execute([$gameId]);
+        if (!$stmt->fetch()) errorResponse('Game not found', 404);
+
+        $stmt = $db->prepare('SELECT player_id FROM game_players WHERE game_id = ? AND player_id = ?');
+        $stmt->execute([$gameId, $playerId]);
+        if (!$stmt->fetch()) errorResponse('Player not in this game', 404);
+
+        $stmt = $db->prepare('
+            SELECT row_pos AS row, col_pos AS col, is_hit
+            FROM ships
+            WHERE game_id = ? AND player_id = ?
+            ORDER BY row_pos ASC, col_pos ASC
+        ');
+        $stmt->execute([$gameId, $playerId]);
+
+        $ships = [];
+        foreach ($stmt->fetchAll() as $ship) {
+            $ships[] = [
+                'row'    => (int)$ship['row'],
+                'col'    => (int)$ship['col'],
+                'sunk'   => gameBool($ship['is_hit']),
+                'is_hit' => gameBool($ship['is_hit']),
+            ];
+        }
+
+        jsonResponse($ships, 200);
+    } catch (PDOException $e) {
+        errorResponse('Failed to get ships', 500);
     }
 }
 

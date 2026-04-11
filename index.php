@@ -87,7 +87,23 @@ switch (true) {
     case $method === 'POST'
         && isset($parts[1], $parts[2], $parts[3])
         && $parts[1] === 'games'
+        && $parts[3] === 'ships':
+        require_once 'routes/games.php';
+        handlePlaceShips((int)$parts[2]);
+        break;
+
+    case $method === 'POST'
+        && isset($parts[1], $parts[2], $parts[3])
+        && $parts[1] === 'games'
         && $parts[3] === 'fire':
+        require_once 'routes/games.php';
+        handleFire((int)$parts[2]);
+        break;
+
+    case $method === 'POST'
+        && isset($parts[1], $parts[2], $parts[3])
+        && $parts[1] === 'games'
+        && $parts[3] === 'moves':
         require_once 'routes/games.php';
         handleFire((int)$parts[2]);
         break;
@@ -98,6 +114,30 @@ switch (true) {
         && $parts[3] === 'moves':
         require_once 'routes/moves.php';
         handleGetMoves((int)$parts[2]);
+        break;
+
+    case $method === 'GET'
+        && isset($parts[1], $parts[2], $parts[3])
+        && $parts[1] === 'games'
+        && $parts[3] === 'ships':
+        require_once 'routes/games.php';
+        handleGetShips((int)$parts[2]);
+        break;
+
+    case $method === 'GET'
+        && isset($parts[1], $parts[2], $parts[3])
+        && $parts[1] === 'games'
+        && $parts[3] === 'players':
+        require_once 'routes/games.php';
+        handleGetGamePlayers((int)$parts[2]);
+        break;
+
+    case $method === 'GET'
+        && isset($parts[1], $parts[2], $parts[3])
+        && $parts[1] === 'games'
+        && $parts[3] === 'boards':
+        require_once 'routes/games.php';
+        handleGetGameBoards((int)$parts[2]);
         break;
 
     case $method === 'GET'

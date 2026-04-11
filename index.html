@@ -616,6 +616,224 @@
     .placement-status.error { color: var(--crimson); }
     .placement-status.success { color: #4caf50; }
 
+    /* ── GAMEPLAY VIEW ── */
+    .game-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .game-toolbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .turn-banner {
+      border: 1px solid var(--border);
+      background: rgba(15,32,68,0.7);
+      color: var(--parchment);
+      padding: 0.85rem 1rem;
+      font-family: var(--cinzel);
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .turn-banner.ready {
+      border-color: rgba(201,168,76,0.6);
+      color: var(--gold);
+      background: rgba(201,168,76,0.08);
+    }
+
+    .turn-banner.finished {
+      border-color: rgba(76,175,80,0.5);
+      color: #4caf50;
+      background: rgba(76,175,80,0.08);
+    }
+
+    .game-board-wrap {
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+
+    .game-board {
+      border-collapse: collapse;
+      border: 2px solid var(--gold);
+      background: rgba(10,22,40,0.7);
+    }
+
+    .game-board th {
+      width: 2.25rem;
+      height: 2.25rem;
+      color: var(--gold);
+      font-family: var(--cinzel);
+      font-size: 0.62rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .game-board td {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 1px solid rgba(201,168,76,0.18);
+      background: rgba(10,22,40,0.85);
+      cursor: pointer;
+      text-align: center;
+      color: var(--parchment);
+      transition: background 0.15s, border-color 0.15s, transform 0.15s;
+    }
+
+    .game-board td:hover {
+      border-color: rgba(201,168,76,0.55);
+      background: rgba(201,168,76,0.1);
+    }
+
+    .game-board td.selected {
+      outline: 2px solid var(--gold);
+      outline-offset: -3px;
+    }
+
+    .game-board td.hit {
+      background: rgba(196,30,58,0.85);
+      border-color: var(--crimson);
+      cursor: default;
+    }
+
+    .game-board td.hit::after { content: 'X'; font-weight: 700; }
+
+    .game-board td.miss {
+      background: rgba(143,168,200,0.28);
+      border-color: rgba(143,168,200,0.5);
+      cursor: default;
+    }
+
+    .game-board td.miss::after { content: 'o'; color: var(--mist); }
+
+    .game-board td.own-ship {
+      background: rgba(201,168,76,0.72);
+      border-color: var(--gold);
+      color: var(--navy);
+    }
+
+    .game-board td.own-ship::after { content: 'S'; font-weight: 700; }
+
+    .game-board td.locked {
+      cursor: not-allowed;
+      opacity: 0.75;
+    }
+
+    .game-side {
+      position: sticky;
+      top: 5rem;
+    }
+
+    .game-meta-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1rem 0;
+      font-size: 0.82rem;
+      color: var(--mist);
+    }
+
+    .game-meta-list strong { color: var(--parchment); }
+
+    .move-log {
+      max-height: 260px;
+      overflow-y: auto;
+      border: 1px solid var(--border);
+      background: rgba(10,22,40,0.45);
+    }
+
+    .move-log .history-table th,
+    .move-log .history-table td {
+      padding: 0.5rem 0.65rem;
+    }
+
+    .player-boards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .player-board {
+      border: 1px solid var(--border);
+      background: rgba(15,32,68,0.55);
+      padding: 1rem;
+    }
+
+    .player-board-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      align-items: center;
+      color: var(--parchment);
+      font-family: var(--cinzel);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .player-board-status {
+      color: var(--mist);
+      font-size: 0.62rem;
+      white-space: nowrap;
+    }
+
+    .mini-board {
+      border-collapse: collapse;
+      border: 1px solid var(--gold);
+    }
+
+    .mini-board td {
+      width: 1.25rem;
+      height: 1.25rem;
+      border: 1px solid rgba(201,168,76,0.15);
+      background: rgba(10,22,40,0.85);
+      text-align: center;
+      font-size: 0.65rem;
+      line-height: 1;
+    }
+
+    .mini-board td.hit {
+      background: rgba(196,30,58,0.85);
+      border-color: var(--crimson);
+    }
+
+    .mini-board td.hit::after { content: 'X'; font-weight: 700; }
+
+    .mini-board td.miss {
+      background: rgba(143,168,200,0.28);
+      border-color: rgba(143,168,200,0.5);
+    }
+
+    .mini-board td.miss::after { content: 'o'; color: var(--mist); }
+
+    .mini-board td.ship {
+      background: rgba(201,168,76,0.75);
+      border-color: var(--gold);
+      color: var(--navy);
+    }
+
+    .mini-board td.ship::after { content: 'S'; font-weight: 700; }
+
+    .game-status-text {
+      min-height: 1.2rem;
+      color: var(--mist);
+      font-size: 0.82rem;
+      margin-top: 0.75rem;
+    }
+
+    .game-status-text.error { color: var(--crimson); }
+    .game-status-text.success { color: #4caf50; }
+
     /* ── STATS VIEW ── */
     .stats-layout {
       display: grid;
@@ -743,13 +961,15 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
-      .placement-layout { grid-template-columns: 1fr; }
+      .placement-layout, .game-layout { grid-template-columns: 1fr; }
       .create-game-fields { grid-template-columns: 1fr; }
       .stats-layout { grid-template-columns: 1fr 1fr; }
       .grid-cell { width: 2rem; height: 2rem; }
       .grid-row-label, .grid-col-label { width: 2rem; height: 2rem; }
-      .placement-panel { position: static; }
+      .placement-panel, .game-side { position: static; }
       .lobby-header { flex-direction: column; align-items: flex-start; }
+      .game-board td { width: 2rem; height: 2rem; }
+      .game-board th { width: 2rem; height: 2rem; }
     }
 
     @media (max-width: 480px) {
@@ -847,6 +1067,7 @@
       <p class="section-eyebrow">Battle Preparation</p>
       <h2 class="section-title" style="font-size:2.2rem">Deploy Your Fleet</h2>
       <p class="section-sub">Click 3 cells to place your ships. Choose wisely, Captain.</p>
+      <button class="btn btn-ghost btn-sm" onclick="showView('lobby')">Back to Lobby</button>
 
       <div class="divider"></div>
       <div class="alert" id="place-alert"></div>
@@ -884,6 +1105,66 @@
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ GAMEPLAY VIEW ════════════════════════════════ -->
+  <div id="view-game" class="view">
+    <div class="page-wrap">
+      <div class="game-toolbar">
+        <div>
+          <p class="section-eyebrow">Battle Waters</p>
+          <h2 class="section-title" style="font-size:2.2rem">Engagement <span id="game-title-id">#-</span></h2>
+          <p class="section-sub" id="game-subtitle" style="margin-bottom:0">Awaiting the battle report.</p>
+        </div>
+        <div style="display:flex; gap:0.75rem; align-items:flex-start; flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="showView('lobby')">Back to Lobby</button>
+          <button class="btn btn-ghost btn-sm" onclick="refreshGameNow()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="alert alert-error" id="game-alert"></div>
+      <div class="turn-banner" id="turn-banner">Checking the wind...</div>
+
+      <div class="game-layout">
+        <div>
+          <div class="game-board-wrap">
+            <table class="game-board" id="game-board" aria-label="Battleship firing grid"></table>
+          </div>
+          <p class="game-status-text" id="game-status-text">Select a target when your turn arrives.</p>
+          <div class="card" style="margin-top:1rem">
+            <p class="section-eyebrow" style="margin-bottom:0.75rem">Move History</p>
+            <div class="move-log" id="game-move-log">
+              <div class="empty-state" style="padding:1.5rem">
+                <p>No cannon fire yet.</p>
+              </div>
+            </div>
+          </div>
+
+          <p class="section-eyebrow" style="margin-top:1.5rem; margin-bottom:1rem">All Boards</p>
+          <div class="player-boards" id="player-boards">
+            <div class="empty-state" style="padding:1.5rem">
+              <p>Boards will appear once the crews are mustered.</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="game-side">
+          <div class="card card-gold">
+            <p class="section-eyebrow" style="margin-bottom:0.75rem">Cannon Orders</p>
+            <div class="game-meta-list">
+              <div>Selected target: <strong id="selected-target">None</strong></div>
+              <div>Your turn order: <strong id="your-turn-order">Unknown</strong></div>
+              <div>Current turn: <strong id="current-turn-label">Unknown</strong></div>
+            </div>
+            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled>
+              Fire
+            </button>
+            <p class="game-status-text" id="fire-status"></p>
+          </div>
+        </aside>
       </div>
     </div>
   </div>
@@ -946,6 +1227,19 @@
       currentGameId: null,
       gridSize: 8,
       selectedShips: [],
+    };
+
+    const gameplay = {
+      pollTimer: null,
+      game: null,
+      moves: [],
+      players: [],
+      boards: [],
+      playerNames: {},
+      selectedTarget: null,
+      myTurnOrder: null,
+      playersEndpointAvailable: true,
+      lastWinnerId: null,
     };
 
     // ══════════════════════════════════════════════
@@ -1068,7 +1362,6 @@
         wrap.className = 'games-grid';
 
         games.forEach(g => {
-          const isMine = g.active_players > 0; // simplification — we check join button state
           const row = document.createElement('div');
           row.className = 'game-row';
           row.innerHTML = `
@@ -1081,7 +1374,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:0.75rem">
               <span class="game-status-pill pill-waiting">Waiting</span>
-              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size})">
+              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size}, ${g.active_players})">
                 ⚔ Board
               </button>
             </div>
@@ -1126,24 +1419,25 @@
         const data = await res.json();
 
         if (res.ok) {
-          sucEl.textContent = `Battle #${data.game_id} commissioned! Proceeding to ship deployment...`;
+          sucEl.textContent = `Battle #${data.game_id} commissioned! Boarding before ship deployment...`;
           sucEl.classList.add('visible');
-          setTimeout(() => {
-            startPlacement(data.game_id, gridSize);
-          }, 1000);
+          const joined = await joinGame(data.game_id, data.grid_size || gridSize, 0, { silent: true });
+          if (!joined) {
+            throw new Error('join_failed');
+          }
         } else {
           errEl.textContent = data.error || 'Failed to create game.';
           errEl.classList.add('visible');
           btn.disabled = false;
         }
       } catch (e) {
-        errEl.textContent = 'Could not reach the fleet.';
+        errEl.textContent = 'Could not finish commissioning and boarding. Try again from the lobby.';
         errEl.classList.add('visible');
         btn.disabled = false;
       }
     }
 
-    async function joinGame(gameId, gridSize) {
+    async function joinGame(gameId, gridSize, turnOrderHint = null, options = {}) {
       try {
         const res = await fetch(API + '/api/games/' + gameId + '/join', {
           method: 'POST',
@@ -1153,12 +1447,16 @@
         const data = await res.json();
 
         if (res.ok) {
+          gameplay.myTurnOrder = data.turn_order ?? turnOrderHint;
           startPlacement(gameId, gridSize);
+          return true;
         } else {
-          alert('Could not join: ' + (data.error || 'Unknown error'));
+          if (!options.silent) showLobbyError(data.error || 'Could not board that battle.');
+          return false;
         }
       } catch (e) {
-        alert('Could not reach the fleet.');
+        if (!options.silent) showLobbyError('Could not reach the fleet.');
+        return false;
       }
     }
 
@@ -1283,12 +1581,11 @@
         const data = await res.json();
 
         if (res.ok) {
-          alertEl.textContent = 'Fleet deployed! Waiting for battle to begin. Check back in the lobby for game status.';
+          alertEl.textContent = 'Fleet deployed! Opening the battle waters...';
           alertEl.className = 'alert alert-success visible';
           setTimeout(() => {
-            showView('lobby');
-            loadLobby();
-          }, 2500);
+            startGameView(state.currentGameId, state.gridSize);
+          }, 900);
         } else {
           alertEl.textContent = data.error || 'Failed to deploy fleet.';
           alertEl.className = 'alert alert-error visible';
@@ -1299,6 +1596,548 @@
         alertEl.className = 'alert alert-error visible';
         btn.disabled = false;
       }
+    }
+
+    // ══════════════════════════════════════════════
+    // GAMEPLAY
+    // ══════════════════════════════════════════════
+    async function apiRequest(path, options = {}) {
+      const res = await fetch(API + path, options);
+      const raw = await res.text();
+      let data = null;
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          data = null;
+        }
+      }
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    function showLobbyError(message) {
+      const errEl = document.getElementById('create-error');
+      errEl.textContent = friendlyError(message, 'Could not board that battle.');
+      errEl.classList.add('visible');
+      setTimeout(() => errEl.classList.remove('visible'), 3500);
+    }
+
+    function friendlyError(value, fallback) {
+      if (!value) return fallback;
+      if (typeof value === 'string') return value;
+      if (value.error) return value.error;
+      return fallback;
+    }
+
+    function startGameView(gameId, gridSize) {
+      state.currentGameId = gameId;
+      state.gridSize = gridSize || state.gridSize;
+      gameplay.game = null;
+      gameplay.moves = [];
+      gameplay.players = [];
+      gameplay.boards = [];
+      gameplay.selectedTarget = null;
+      gameplay.lastWinnerId = null;
+      gameplay.playerNames[state.playerId] = state.username;
+      document.getElementById('game-title-id').textContent = '#' + gameId;
+      document.getElementById('selected-target').textContent = 'None';
+      document.getElementById('fire-status').textContent = '';
+      document.getElementById('game-alert').classList.remove('visible');
+      buildGameBoard();
+      showView('game');
+    }
+
+    function buildGameBoard() {
+      const table = document.getElementById('game-board');
+      table.innerHTML = '';
+
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.appendChild(document.createElement('th'));
+      for (let col = 0; col < state.gridSize; col++) {
+        const th = document.createElement('th');
+        th.textContent = String.fromCharCode(65 + col);
+        headRow.appendChild(th);
+      }
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      for (let row = 0; row < state.gridSize; row++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = row + 1;
+        tr.appendChild(th);
+
+        for (let col = 0; col < state.gridSize; col++) {
+          const td = document.createElement('td');
+          td.dataset.row = row;
+          td.dataset.col = col;
+          td.setAttribute('aria-label', 'Target ' + formatCoord(row, col));
+          td.addEventListener('click', () => selectTarget(row, col));
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      renderGameBoard();
+    }
+
+    function selectTarget(row, col) {
+      if (!gameplay.game) return;
+
+      if (isGameFinished()) {
+        setFireStatus('The battle is already finished.', 'error');
+        return;
+      }
+
+      if (!isMyTurn()) {
+        setFireStatus('Hold fire until your turn.', 'error');
+        return;
+      }
+
+      if (moveAt(row, col)) {
+        setFireStatus('That water has already been fired upon.', 'error');
+        return;
+      }
+
+      if (ownShipAt(row, col)) {
+        setFireStatus('That mark is one of your own ships.', 'error');
+        return;
+      }
+
+      gameplay.selectedTarget = { row, col };
+      document.getElementById('selected-target').textContent = formatCoord(row, col);
+      setFireStatus('Target locked. Give the order to fire.', '');
+      renderGameBoard();
+      updateFireButton();
+    }
+
+    async function fireSelectedCell() {
+      if (!gameplay.selectedTarget || !isMyTurn() || isGameFinished()) {
+        updateFireButton();
+        return;
+      }
+
+      const target = gameplay.selectedTarget;
+      const btn = document.getElementById('fire-btn');
+      btn.disabled = true;
+      setFireStatus('Firing...', '');
+
+      try {
+        const result = await apiRequest('/api/games/' + state.currentGameId + '/fire', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            player_id: state.playerId,
+            row: target.row,
+            col: target.col
+          })
+        });
+
+        if (!result.ok) {
+          setFireStatus(friendlyError(result.data, 'The cannon order failed.'), 'error');
+          updateFireButton();
+          return;
+        }
+
+        const move = {
+          player_id: state.playerId,
+          row: target.row,
+          col: target.col,
+          result: result.data.result || 'miss',
+          created_at: new Date().toISOString()
+        };
+        gameplay.moves.push(move);
+        gameplay.lastWinnerId = result.data.winner_id ?? gameplay.lastWinnerId;
+        gameplay.selectedTarget = null;
+        document.getElementById('selected-target').textContent = 'None';
+        setFireStatus(move.result === 'hit' ? 'Direct hit.' : 'Splash. No hit.', move.result === 'hit' ? 'success' : '');
+        renderGame();
+        await refreshGameNow();
+      } catch (e) {
+        setFireStatus('Could not reach the fleet.', 'error');
+        updateFireButton();
+      }
+    }
+
+    async function refreshGameNow() {
+      if (!state.currentGameId) return;
+
+      try {
+        const [gameResult, movesResult, playersResult, boardsResult] = await Promise.all([
+          apiRequest('/api/games/' + state.currentGameId),
+          apiRequest('/api/games/' + state.currentGameId + '/moves'),
+          fetchGamePlayers(),
+          fetchGameBoards()
+        ]);
+
+        if (!gameResult.ok) {
+          showGameError(friendlyError(gameResult.data, 'Could not load the battle.'));
+          return;
+        }
+
+        gameplay.game = gameResult.data;
+        if (gameResult.data.grid_size) {
+          const nextGridSize = parseInt(gameResult.data.grid_size);
+          if (nextGridSize && nextGridSize !== state.gridSize) {
+            state.gridSize = nextGridSize;
+            buildGameBoard();
+          }
+        }
+
+        if (movesResult.ok && Array.isArray(movesResult.data)) {
+          gameplay.moves = movesResult.data;
+          hydrateMovePlayerNames(gameplay.moves);
+        }
+
+        if (playersResult && Array.isArray(playersResult)) {
+          gameplay.players = playersResult;
+          playersResult.forEach(player => {
+            const id = parseInt(player.player_id);
+            if (player.username) gameplay.playerNames[id] = player.username;
+            if (id === state.playerId && player.turn_order !== undefined) {
+              gameplay.myTurnOrder = parseInt(player.turn_order);
+            }
+          });
+        } else {
+          deriveTurnOrderFromMoves();
+        }
+
+        if (boardsResult && Array.isArray(boardsResult)) {
+          gameplay.boards = boardsResult;
+          boardsResult.forEach(board => {
+            if (board.username) gameplay.playerNames[parseInt(board.player_id)] = board.username;
+          });
+        }
+
+        renderGame();
+        if (isGameFinished()) stopGamePolling();
+      } catch (e) {
+        showGameError('Could not refresh the battle waters.');
+      }
+    }
+
+    async function fetchGamePlayers() {
+      if (!gameplay.playersEndpointAvailable) return null;
+
+      const result = await apiRequest('/api/games/' + state.currentGameId + '/players');
+      if (result.status === 404) {
+        gameplay.playersEndpointAvailable = false;
+        return null;
+      }
+      if (!result.ok) return null;
+      return Array.isArray(result.data) ? result.data : (result.data.players || []);
+    }
+
+    async function fetchGameBoards() {
+      const result = await apiRequest('/api/games/' + state.currentGameId + '/boards');
+      if (!result.ok) return null;
+      return Array.isArray(result.data) ? result.data : (result.data.boards || []);
+    }
+
+    async function hydrateMovePlayerNames(moves) {
+      const ids = [...new Set(moves.map(m => parseInt(m.player_id)).filter(Boolean))];
+      ids.forEach(async id => {
+        if (gameplay.playerNames[id]) return;
+        try {
+          const result = await apiRequest('/api/players/' + id);
+          if (result.ok && result.data && result.data.username) {
+            gameplay.playerNames[id] = result.data.username;
+            renderMoveLog();
+          }
+        } catch (e) {
+          gameplay.playerNames[id] = 'Player ' + id;
+        }
+      });
+    }
+
+    function deriveTurnOrderFromMoves() {
+      if (gameplay.myTurnOrder !== null) return;
+      const order = [];
+      gameplay.moves.forEach(move => {
+        const id = parseInt(move.player_id);
+        if (!order.includes(id)) order.push(id);
+      });
+      const idx = order.indexOf(state.playerId);
+      if (idx >= 0) gameplay.myTurnOrder = idx;
+    }
+
+    function startGamePolling() {
+      stopGamePolling();
+      refreshGameNow();
+      gameplay.pollTimer = setInterval(refreshGameNow, 4000);
+    }
+
+    function stopGamePolling() {
+      if (gameplay.pollTimer) {
+        clearInterval(gameplay.pollTimer);
+        gameplay.pollTimer = null;
+      }
+    }
+
+    function renderGame() {
+      if (!gameplay.game) return;
+      document.getElementById('game-subtitle').textContent = 'Status: ' + readableStatus(currentGameStatus() || 'waiting');
+      renderTurnIndicator();
+      renderGameBoard();
+      renderMoveLog();
+      renderPlayerBoards();
+      updateFireButton();
+    }
+
+    function renderTurnIndicator() {
+      const banner = document.getElementById('turn-banner');
+      const turnLabel = document.getElementById('current-turn-label');
+      const yourOrder = document.getElementById('your-turn-order');
+      const status = currentGameStatus();
+      const currentTurn = parseInt(gameplay.game.current_turn_index ?? 0);
+      const currentName = nameForTurn(currentTurn);
+
+      yourOrder.textContent = gameplay.myTurnOrder === null ? 'Unknown' : gameplay.myTurnOrder;
+      turnLabel.textContent = currentName;
+      banner.className = 'turn-banner';
+
+      if (status === 'finished') {
+        banner.classList.add('finished');
+        const winnerName = gameplay.lastWinnerId ? nameForPlayer(gameplay.lastWinnerId) : 'The last fleet standing';
+        banner.textContent = winnerName + ' has claimed these waters.';
+        return;
+      }
+
+      if (status !== 'active' && status !== 'playing') {
+        banner.textContent = 'Waiting for every captain to deploy their fleet.';
+        return;
+      }
+
+      if (isMyTurn()) {
+        banner.classList.add('ready');
+        banner.textContent = 'Your turn. Choose a target and fire.';
+      } else {
+        banner.textContent = currentName + ' has the helm.';
+      }
+    }
+
+    function renderGameBoard() {
+      const cells = document.querySelectorAll('#game-board td');
+      const selected = gameplay.selectedTarget;
+      const locked = !isMyTurn() || isGameFinished();
+
+      cells.forEach(cell => {
+        const row = parseInt(cell.dataset.row);
+        const col = parseInt(cell.dataset.col);
+        const move = moveAt(row, col);
+        const ownShip = ownShipAt(row, col);
+
+        cell.className = '';
+        if (move) {
+          cell.classList.add(move.result === 'hit' ? 'hit' : 'miss');
+        } else if (ownShip) {
+          cell.classList.add('own-ship');
+        }
+        if (selected && selected.row === row && selected.col === col) {
+          cell.classList.add('selected');
+        }
+        if (locked || move || ownShip) {
+          cell.classList.add('locked');
+        }
+      });
+    }
+
+    function renderMoveLog() {
+      const wrap = document.getElementById('game-move-log');
+      if (!gameplay.moves.length) {
+        wrap.innerHTML = '<div class="empty-state" style="padding:1.5rem"><p>No cannon fire yet.</p></div>';
+        return;
+      }
+
+      const table = document.createElement('table');
+      table.className = 'history-table';
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Captain</th>
+            <th>Target</th>
+            <th>Result</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      `;
+      const tbody = table.querySelector('tbody');
+
+      gameplay.moves.forEach(move => {
+        const tr = document.createElement('tr');
+        const player = document.createElement('td');
+        const target = document.createElement('td');
+        const result = document.createElement('td');
+        const time = document.createElement('td');
+
+        player.textContent = nameForPlayer(move.player_id);
+        target.textContent = formatCoord(parseInt(move.row), parseInt(move.col));
+        result.textContent = move.result === 'hit' ? 'Hit' : 'Miss';
+        result.className = move.result === 'hit' ? 'result-hit' : 'result-miss';
+        time.textContent = formatMoveTime(move.created_at);
+        time.style.color = 'var(--mist)';
+        time.style.fontSize = '0.75rem';
+
+        tr.appendChild(player);
+        tr.appendChild(target);
+        tr.appendChild(result);
+        tr.appendChild(time);
+        tbody.appendChild(tr);
+      });
+
+      wrap.innerHTML = '';
+      wrap.appendChild(table);
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+
+    function renderPlayerBoards() {
+      const wrap = document.getElementById('player-boards');
+      if (!gameplay.boards.length) {
+        wrap.innerHTML = '<div class="empty-state" style="padding:1.5rem"><p>Boards will appear once the crews are mustered.</p></div>';
+        return;
+      }
+
+      wrap.innerHTML = '';
+      gameplay.boards.forEach(board => {
+        const panel = document.createElement('div');
+        panel.className = 'player-board';
+
+        const title = document.createElement('div');
+        title.className = 'player-board-title';
+
+        const name = document.createElement('span');
+        name.textContent = board.player_id === state.playerId ? 'Your Board' : nameForPlayer(board.player_id);
+
+        const status = document.createElement('span');
+        status.className = 'player-board-status';
+        status.textContent = board.is_eliminated ? 'Eliminated' : 'Order ' + board.turn_order;
+
+        title.appendChild(name);
+        title.appendChild(status);
+        panel.appendChild(title);
+        panel.appendChild(buildMiniBoard(board));
+        wrap.appendChild(panel);
+      });
+    }
+
+    function buildMiniBoard(board) {
+      const table = document.createElement('table');
+      table.className = 'mini-board';
+      const isOwnBoard = parseInt(board.player_id) === state.playerId;
+      const shipKeys = new Set((board.ships || []).map(ship => coordKey(ship.row, ship.col)));
+      const hitKeys = new Set((board.hits || []).map(ship => coordKey(ship.row, ship.col)));
+      const missKeys = new Set((gameplay.moves || [])
+        .filter(move => move.result !== 'hit')
+        .map(move => coordKey(move.row, move.col)));
+
+      for (let row = 0; row < state.gridSize; row++) {
+        const tr = document.createElement('tr');
+        for (let col = 0; col < state.gridSize; col++) {
+          const td = document.createElement('td');
+          const key = coordKey(row, col);
+
+          if (hitKeys.has(key)) {
+            td.className = 'hit';
+          } else if (missKeys.has(key) && !isOwnBoard) {
+            td.className = 'miss';
+          } else if (isOwnBoard && shipKeys.has(key)) {
+            td.className = 'ship';
+          }
+
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+
+      return table;
+    }
+
+    function updateFireButton() {
+      const btn = document.getElementById('fire-btn');
+      btn.disabled = !gameplay.selectedTarget || !isMyTurn() || isGameFinished();
+    }
+
+    function moveAt(row, col) {
+      return gameplay.moves.find(move => parseInt(move.row) === row && parseInt(move.col) === col);
+    }
+
+    function ownShipAt(row, col) {
+      const ownBoard = gameplay.boards.find(board => parseInt(board.player_id) === state.playerId);
+      if (ownBoard) {
+        return (ownBoard.ships || []).some(ship => parseInt(ship.row) === row && parseInt(ship.col) === col);
+      }
+      return state.selectedShips.some(ship => ship.row === row && ship.col === col);
+    }
+
+    function coordKey(row, col) {
+      return parseInt(row) + ',' + parseInt(col);
+    }
+
+    function isMyTurn() {
+      if (!gameplay.game || gameplay.myTurnOrder === null) return false;
+      const status = currentGameStatus();
+      return (status === 'active' || status === 'playing') &&
+        parseInt(gameplay.game.current_turn_index) === parseInt(gameplay.myTurnOrder);
+    }
+
+    function isGameFinished() {
+      if (!gameplay.game) return false;
+      return currentGameStatus() === 'finished';
+    }
+
+    function currentGameStatus() {
+      if (!gameplay.game) return null;
+      return gameplay.game.game_status || gameplay.game.status;
+    }
+
+    function nameForTurn(turnOrder) {
+      const player = gameplay.players.find(p => parseInt(p.turn_order) === parseInt(turnOrder));
+      if (player) return nameForPlayer(player.player_id);
+      if (gameplay.myTurnOrder !== null && parseInt(turnOrder) === parseInt(gameplay.myTurnOrder)) return state.username;
+      return 'Turn order ' + turnOrder;
+    }
+
+    function nameForPlayer(playerId) {
+      const id = parseInt(playerId);
+      if (id === state.playerId) return state.username;
+      return gameplay.playerNames[id] || ('Player ' + id);
+    }
+
+    function formatCoord(row, col) {
+      return String.fromCharCode(65 + col) + (row + 1);
+    }
+
+    function formatMoveTime(value) {
+      if (!value) return 'Just now';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return 'Just now';
+      return date.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+      });
+    }
+
+    function readableStatus(status) {
+      if (status === 'active') return 'playing';
+      if (status === 'waiting_setup') return 'waiting for fleets';
+      return status.replaceAll('_', ' ');
+    }
+
+    function setFireStatus(message, type) {
+      const el = document.getElementById('fire-status');
+      el.textContent = message;
+      el.className = 'game-status-text' + (type ? ' ' + type : '');
+    }
+
+    function showGameError(message) {
+      const alertEl = document.getElementById('game-alert');
+      alertEl.textContent = message;
+      alertEl.classList.add('visible');
     }
 
     // ══════════════════════════════════════════════
@@ -1378,6 +2217,13 @@
     // ══════════════════════════════════════════════
     // START
     // ══════════════════════════════════════════════
+    const baseShowView = showView;
+    showView = function(name) {
+      if (name !== 'game') stopGamePolling();
+      baseShowView(name);
+      if (name === 'game') startGamePolling();
+    };
+
     init();
   </script>
 </body>
