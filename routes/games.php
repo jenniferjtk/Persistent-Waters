@@ -282,7 +282,7 @@ function handleFire(int $gameId): void {
             WHERE game_id = ? AND player_id = ? AND row_pos = ? AND col_pos = ?
         ');
         $stmt->execute([$gameId, $playerId, $row, $col]);
-        if ($stmt->fetch()) errorResponse('Duplicate move: already fired at this coordinate', 400);
+       if ($stmt->fetch()) errorResponse('Duplicate move: already fired at this coordinate', 409);
 
         // Hit detection — any unhit ship belonging to another player
         $stmt = $db->prepare('
