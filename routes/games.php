@@ -5,6 +5,41 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 
+function handleGetGames(): void {
+    $db = getDB();
+
+    try {
+        $stmt = $db->query('
+            SELECT
+                g.game_id,
+                g.grid_size,
+                g.status,
+                g.current_turn_index,
+                COUNT(gp.player_id) FILTER (WHERE gp.is_eliminated = FALSE) AS active_players
+            FROM games g
+            LEFT JOIN game_players gp ON gp.game_id = g.game_id
+            GROUP BY g.game_id
+            ORDER BY g.game_id ASC
+        ');
+
+        $games = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $games[] = [
+                'game_id'            => (int)$row['game_id'],
+                'grid_size'          => (int)$row['grid_size'],
+                'status'             => $row['status'],
+                'current_turn_index' => (int)$row['current_turn_index'],
+                'active_players'     => (int)$row['active_players'],
+            ];
+        }
+
+        jsonResponse(['games' => $games]);
+
+    } catch (PDOException $e) {
+        errorResponse('Failed to get games', 500);
+    }
+}
+
 function handleCreateGame(): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);

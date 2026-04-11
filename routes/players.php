@@ -6,6 +6,28 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 
+function handleGetPlayer(int $playerId): void {
+    $db = getDB();
+
+    try {
+        $stmt = $db->prepare('SELECT player_id, username FROM players WHERE player_id = ?');
+        $stmt->execute([$playerId]);
+        $player = $stmt->fetch();
+
+        if (!$player) {
+            errorResponse('Player not found', 404);
+        }
+
+        jsonResponse([
+            'player_id' => (int)$player['player_id'],
+            'username'  => $player['username'],
+        ]);
+
+    } catch (PDOException $e) {
+        errorResponse('Failed to get player', 500);
+    }
+}
+
 function handleCreatePlayer(): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);

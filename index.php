@@ -35,11 +35,24 @@ switch (true) {
         break;
 
     case $method === 'GET'
+        && isset($parts[1], $parts[2])
+        && $parts[1] === 'players'
+        && !isset($parts[3]):
+        require_once 'routes/players.php';
+        handleGetPlayer((int)$parts[2]);
+        break;
+
+    case $method === 'GET'
         && isset($parts[1], $parts[2], $parts[3])
         && $parts[1] === 'players'
         && $parts[3] === 'stats':
         require_once 'routes/players.php';
         handleGetStats((int)$parts[2]);
+        break;
+
+    case $method === 'GET' && $path === 'api/games':
+        require_once 'routes/games.php';
+        handleGetGames();
         break;
 
     case $method === 'POST' && $path === 'api/games':
