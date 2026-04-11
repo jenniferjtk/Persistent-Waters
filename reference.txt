@@ -1,0 +1,3 @@
+RESET DATABASE
+
+curl -s -X POST https://persistent-waters.onrender.com/api/reset | json_pp
