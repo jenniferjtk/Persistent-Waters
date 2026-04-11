@@ -117,7 +117,7 @@ function handleJoinGame(int $gameId): void {
         $stmt->execute([$gameId]);
         $count = (int)$stmt->fetch()['count'];
 
-        if ($count >= $game['max_players']) errorResponse('Game is full', 409);
+       if ($count >= $game['max_players']) errorResponse('game is full', 409);
 
         $stmt = $db->prepare('INSERT INTO game_players (game_id, player_id, turn_order) VALUES (?, ?, ?)');
         $stmt->execute([$gameId, $playerId, $count]);
