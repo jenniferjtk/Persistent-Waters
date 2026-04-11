@@ -48,9 +48,10 @@ function handleCreatePlayer(): void {
         $stmt->execute([$username]);
         $existing = $stmt->fetch();
 
-        if ($existing) {
-            errorResponse('Username already exists', 409);
-        }
+       if ($existing) {
+        jsonResponse(['player_id' => (int)$existing['player_id'], 'username' => $username], 200);
+        return;
+    }
 
         $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');
         $stmt->execute([$username]);
