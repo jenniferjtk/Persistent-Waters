@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Persistent Waters</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Cinzel:wght@400;600;700&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --navy:      #0a1628;
+      --navy2:     #0f2044;
+      --navy3:     #162a52;
+      --parchment: #f4e4c1;
+      --parchment2:#e8d5a3;
+      --crimson:   #c41e3a;
+      --crimson2:  #9b1830;
+      --gold:      #c9a84c;
+      --gold2:     #a8893a;
+      --white:     #ffffff;
+      --mist:      #8fa8c8;
+      --hit:       #c41e3a;
+      --miss:      #4a6fa5;
+      --ship:      #2d5a1b;
+      --border:    rgba(201,168,76,0.3);
+      --pirate:    'Pirata One', cursive;
+      --cinzel:    'Cinzel', serif;
+      --body:      'Source Sans 3', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--navy);
+      color: var(--parchment);
+      font-family: var(--body);
+      font-weight: 400;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Ocean wave background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(15,32,68,0.8) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(22,42,82,0.6) 0%, transparent 50%),
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 2px,
+          rgba(143,168,200,0.03) 2px,
+          rgba(143,168,200,0.03) 4px
+        );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Noise texture overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── VIEWS ── */
+    .view {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1;
+      padding: 2rem;
+      overflow-y: auto;
+    }
+    .view.active { display: block; }
+
+    /* ── NAV BAR ── */
+    .navbar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 2rem;
+      background: rgba(10,22,40,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-title {
+      font-family: var(--pirate);
+      font-size: 1.4rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .nav-player {
+      font-family: var(--cinzel);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      color: var(--mist);
+      text-transform: uppercase;
+    }
+
+    .nav-player span {
+      color: var(--gold);
+    }
+
+    .nav-btn {
+      font-family: var(--cinzel);
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: transparent;
+      color: var(--mist);
+      border: 1px solid rgba(143,168,200,0.3);
+      padding: 0.4rem 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+      color: var(--parchment);
+      border-color: var(--gold);
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding-top: 5rem;
+    }
+
+    /* ── SECTION HEADERS ── */
+    .section-eyebrow {
+      font-family: var(--cinzel);
+      font-size: 0.62rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .section-eyebrow::before {
+      content: '';
+      display: block;
+      width: 2rem;
+      height: 1px;
+      background: var(--gold);
+    }
+
+    .section-title {
+      font-family: var(--pirate);
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      color: var(--parchment);
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-sub {
+      font-size: 0.9rem;
+      color: var(--mist);
+      margin-bottom: 2rem;
+      max-width: 55ch;
+    }
+
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, var(--gold), transparent);
+      margin: 1.5rem 0;
+      opacity: 0.4;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      font-family: var(--cinzel);
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 0.8rem 1.8rem;
+      border: 1px solid;
+      cursor: pointer;
+      transition: all 0.22s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: var(--crimson);
+      color: var(--white);
+      border-color: var(--crimson);
+    }
+
+    .btn-primary:hover {
+      background: var(--crimson2);
+      border-color: var(--crimson2);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 20px rgba(196,30,58,0.4);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: var(--navy);
+      border-color: var(--gold);
+      font-weight: 600;
+    }
+
+    .btn-gold:hover {
+      background: var(--gold2);
+      border-color: var(--gold2);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--parchment);
+      border-color: var(--border);
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .btn-sm {
+      font-size: 0.62rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── INPUTS ── */
+    .input-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .input-label {
+      font-family: var(--cinzel);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(15,32,68,0.8);
+      border: 1px solid var(--border);
+      color: var(--parchment);
+      font-family: var(--body);
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field:focus {
+      border-color: var(--gold);
+    }
+
+    .input-field::placeholder {
+      color: rgba(143,168,200,0.4);
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: rgba(15,32,68,0.6);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      backdrop-filter: blur(8px);
+    }
+
+    .card-gold {
+      border-color: var(--gold);
+      border-left-width: 3px;
+    }
+
+    /* ── REGISTER VIEW ── */
+    #view-register {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .register-box {
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+    }
+
+    .skull-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+      animation: bob 3s ease-in-out infinite;
+    }
+
+    @keyframes bob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+
+    .register-box .section-title {
+      font-size: 3rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .register-form {
+      margin-top: 2rem;
+      text-align: left;
+    }
+
+    .register-status {
+      font-size: 0.82rem;
+      color: var(--crimson);
+      margin-top: 0.75rem;
+      min-height: 1.2rem;
+      text-align: center;
+    }
+
+    .register-status.success { color: #4caf50; }
+
+    /* ── LOBBY VIEW ── */
+    .lobby-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 2rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .games-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .game-row {
+      background: rgba(10,22,40,0.9);
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: background 0.15s;
+    }
+
+    .game-row:hover {
+      background: rgba(15,32,68,0.95);
+    }
+
+    .game-row-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .game-id {
+      font-family: var(--pirate);
+      font-size: 1.4rem;
+      color: var(--gold);
+      min-width: 3rem;
+    }
+
+    .game-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .game-meta-title {
+      font-family: var(--cinzel);
+      font-size: 0.75rem;
+      color: var(--parchment);
+      letter-spacing: 0.06em;
+    }
+
+    .game-meta-sub {
+      font-size: 0.72rem;
+      color: var(--mist);
+    }
+
+    .game-status-pill {
+      font-family: var(--cinzel);
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.2rem 0.6rem;
+      border: 1px solid;
+    }
+
+    .pill-waiting {
+      color: var(--gold);
+      border-color: rgba(201,168,76,0.4);
+      background: rgba(201,168,76,0.08);
+    }
+
+    .pill-active {
+      color: #4caf50;
+      border-color: rgba(76,175,80,0.4);
+      background: rgba(76,175,80,0.08);
+    }
+
+    .pill-mine {
+      color: var(--crimson);
+      border-color: rgba(196,30,58,0.4);
+      background: rgba(196,30,58,0.08);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--mist);
+      font-size: 0.9rem;
+    }
+
+    .empty-state .skull-icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .create-game-panel {
+      background: rgba(15,32,68,0.6);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .create-game-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    /* ── SHIP PLACEMENT VIEW ── */
+    .placement-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    .grid-container {
+      overflow-x: auto;
+    }
+
+    .battle-grid {
+      display: inline-grid;
+      gap: 0;
+      border: 2px solid var(--gold);
+    }
+
+    .grid-row {
+      display: flex;
+    }
+
+    .grid-header-row {
+      display: flex;
+      padding-left: 2.5rem;
+    }
+
+    .grid-col-label {
+      width: 2.5rem;
+      height: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--cinzel);
+      font-size: 0.6rem;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+
+    .grid-row-label {
+      width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--cinzel);
+      font-size: 0.6rem;
+      color: var(--gold);
+    }
+
+    .grid-cell {
+      width: 2.5rem;
+      height: 2.5rem;
+      border: 1px solid rgba(201,168,76,0.15);
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      position: relative;
+      background: rgba(10,22,40,0.6);
+    }
+
+    .grid-cell:hover {
+      background: rgba(201,168,76,0.12);
+      border-color: rgba(201,168,76,0.4);
+    }
+
+    .grid-cell.ship {
+      background: rgba(45,90,27,0.7);
+      border-color: rgba(45,90,27,0.8);
+    }
+
+    .grid-cell.ship::after {
+      content: '⚓';
+      font-size: 0.75rem;
+    }
+
+    .grid-cell.hit {
+      background: rgba(196,30,58,0.7);
+      border-color: var(--crimson);
+      cursor: default;
+    }
+
+    .grid-cell.hit::after {
+      content: '💥';
+      font-size: 0.7rem;
+    }
+
+    .grid-cell.miss {
+      background: rgba(74,111,165,0.4);
+      border-color: rgba(74,111,165,0.6);
+      cursor: default;
+    }
+
+    .grid-cell.miss::after {
+      content: '○';
+      color: var(--mist);
+      font-size: 1rem;
+    }
+
+    .grid-cell.no-click {
+      cursor: default;
+    }
+
+    .placement-panel {
+      position: sticky;
+      top: 5rem;
+    }
+
+    .ships-remaining {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .ship-slot {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(10,22,40,0.5);
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+
+    .ship-slot.placed {
+      border-color: rgba(45,90,27,0.6);
+      opacity: 0.6;
+    }
+
+    .ship-dot {
+      width: 0.6rem;
+      height: 0.6rem;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+
+    .ship-slot.placed .ship-dot {
+      background: #4caf50;
+    }
+
+    .placement-status {
+      font-size: 0.8rem;
+      color: var(--mist);
+      margin: 0.75rem 0;
+      min-height: 1.2rem;
+    }
+
+    .placement-status.error { color: var(--crimson); }
+    .placement-status.success { color: #4caf50; }
+
+    /* ── STATS VIEW ── */
+    .stats-layout {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      background: rgba(10,22,40,0.9);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: var(--pirate);
+      font-size: 2.5rem;
+      color: var(--gold);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-label {
+      font-family: var(--cinzel);
+      font-size: 0.58rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--mist);
+    }
+
+    .accuracy-bar-wrap {
+      margin: 1.5rem 0;
+    }
+
+    .accuracy-bar-label {
+      font-family: var(--cinzel);
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .accuracy-bar {
+      height: 8px;
+      background: rgba(15,32,68,0.8);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .accuracy-fill {
+      height: 100%;
+      background: linear-gradient(to right, var(--crimson), var(--gold));
+      transition: width 0.8s ease;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+
+    .history-table th {
+      font-family: var(--cinzel);
+      font-size: 0.6rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      padding: 0.6rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .history-table td {
+      padding: 0.6rem 1rem;
+      color: var(--parchment);
+      border-bottom: 1px solid rgba(201,168,76,0.08);
+    }
+
+    .history-table tr:last-child td { border-bottom: none; }
+
+    .result-hit { color: var(--crimson); font-weight: 600; }
+    .result-miss { color: var(--mist); }
+
+    /* ── ALERTS ── */
+    .alert {
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      margin-bottom: 1rem;
+      border: 1px solid;
+      display: none;
+    }
+
+    .alert.visible { display: block; }
+    .alert-error { color: var(--crimson); border-color: rgba(196,30,58,0.4); background: rgba(196,30,58,0.08); }
+    .alert-success { color: #4caf50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.08); }
+    .alert-info { color: var(--gold); border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); }
+
+    /* ── LOADING ── */
+    .loading {
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid rgba(201,168,76,0.3);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-left: 0.5rem;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .view.active { animation: fadeIn 0.3s ease both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .placement-layout { grid-template-columns: 1fr; }
+      .create-game-fields { grid-template-columns: 1fr; }
+      .stats-layout { grid-template-columns: 1fr 1fr; }
+      .grid-cell { width: 2rem; height: 2rem; }
+      .grid-row-label, .grid-col-label { width: 2rem; height: 2rem; }
+      .placement-panel { position: static; }
+      .lobby-header { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-layout { grid-template-columns: 1fr; }
+      .view { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV (hidden on register) -->
+  <nav class="navbar" id="navbar" style="display:none">
+    <span class="nav-title">☠ Persistent Waters</span>
+    <div class="nav-right">
+      <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span></span>
+      <button class="nav-btn" onclick="showView('lobby')">Lobby</button>
+      <button class="nav-btn" onclick="showView('stats')">Stats</button>
+      <button class="nav-btn" onclick="logout()">Desert Ship</button>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════ REGISTER VIEW ════════════════════════════════ -->
+  <div id="view-register" class="view active">
+    <div class="register-box">
+      <span class="skull-icon">☠</span>
+  
+      <h1 class="section-title">Persistent Waters</h1>
+      <p class="section-sub" style="text-align:center; margin: 0 auto 0">A multiplayer Battleship game. Claim your name, captain your fleet.</p>
+
+      <div class="divider" style="margin: 1.5rem 0"></div>
+
+      <div class="register-form card">
+        <div class="input-group">
+          <label class="input-label" for="reg-username">Captain's Name</label>
+          <input class="input-field" id="reg-username" type="text" placeholder="e.g. BlackBeard" autocomplete="off" maxlength="30"/>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="register()" id="reg-btn">
+          ⚓ Enlist
+        </button>
+        <p class="register-status" id="reg-status"></p>
+      </div>
+
+      <p style="font-size:0.75rem; color:var(--mist); margin-top:1rem">
+        Returning captain? Enter your name to reclaim your identity and stats.
+      </p>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ LOBBY VIEW ════════════════════════════════ -->
+  <div id="view-lobby" class="view">
+    <div class="page-wrap">
+      <div class="lobby-header">
+        <div>
+          <p class="section-eyebrow">Fleet Command</p>
+          <h2 class="section-title" style="font-size:2.2rem">Battle Lobby</h2>
+          <p class="section-sub" style="margin-bottom:0">Join an open engagement or commission a new battle.</p>
+        </div>
+        <button class="btn btn-ghost" onclick="loadLobby()">⟳ Refresh</button>
+      </div>
+
+      <!-- Create Game -->
+      <div class="create-game-panel">
+        <p class="section-eyebrow" style="margin-bottom:1rem">Commission New Battle</p>
+        <div class="create-game-fields">
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label">Grid Size (5-15)</label>
+            <input class="input-field" id="grid-size" type="number" min="5" max="15" value="8"/>
+          </div>
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label">Max Players</label>
+            <input class="input-field" id="max-players" type="number" min="2" max="10" value="2"/>
+          </div>
+          <button class="btn btn-gold" onclick="createGame()" id="create-btn">
+            ⚓ Commission
+          </button>
+        </div>
+        <div class="alert alert-error" id="create-error"></div>
+        <div class="alert alert-success" id="create-success"></div>
+      </div>
+
+      <!-- Games List -->
+      <p class="section-eyebrow" style="margin-bottom:1rem">Open Engagements</p>
+      <div id="games-list">
+        <div class="empty-state">
+          <span class="skull-icon">⚓</span>
+          <p>Loading the seas...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ SHIP PLACEMENT VIEW ════════════════════════════════ -->
+  <div id="view-place" class="view">
+    <div class="page-wrap">
+      <p class="section-eyebrow">Battle Preparation</p>
+      <h2 class="section-title" style="font-size:2.2rem">Deploy Your Fleet</h2>
+      <p class="section-sub">Click 3 cells to place your ships. Choose wisely, Captain.</p>
+
+      <div class="divider"></div>
+      <div class="alert" id="place-alert"></div>
+
+      <div class="placement-layout">
+        <!-- Grid -->
+        <div class="grid-container">
+          <div class="grid-header-row" id="col-labels"></div>
+          <div id="placement-grid"></div>
+        </div>
+
+        <!-- Side panel -->
+        <div class="placement-panel">
+          <div class="card card-gold">
+            <p class="section-eyebrow" style="margin-bottom:0.75rem">Fleet Status</p>
+            <div class="ships-remaining" id="ship-slots">
+              <div class="ship-slot" id="slot-0"><div class="ship-dot"></div> Ship 1</div>
+              <div class="ship-slot" id="slot-1"><div class="ship-dot"></div> Ship 2</div>
+              <div class="ship-slot" id="slot-2"><div class="ship-dot"></div> Ship 3</div>
+            </div>
+            <p class="placement-status" id="place-status">Select 3 cells on the grid</p>
+            <button class="btn btn-primary" style="width:100%; margin-top:0.5rem" id="confirm-place-btn" disabled onclick="confirmPlacement()">
+              ⚔ Deploy Fleet
+            </button>
+            <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem" onclick="clearShips()">
+              Clear
+            </button>
+          </div>
+
+          <div class="card" style="margin-top:1rem">
+            <p style="font-size:0.78rem; color:var(--mist); line-height:1.7">
+              ⚓ Ships are single-cell vessels.<br>
+              ☠ No overlapping positions.<br>
+              ⚔ All must be placed before battle begins.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ STATS VIEW ════════════════════════════════ -->
+  <div id="view-stats" class="view">
+    <div class="page-wrap">
+      <p class="section-eyebrow">Naval Records</p>
+      <h2 class="section-title" style="font-size:2.2rem">Captain's Log</h2>
+      <p class="section-sub" id="stats-player-name">Lifetime battle statistics</p>
+
+      <div class="divider"></div>
+
+      <div class="stats-layout" id="stats-boxes">
+        <div class="stat-box"><div class="stat-num" id="stat-games">-</div><div class="stat-label">Battles Fought</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-wins">-</div><div class="stat-label">Victories</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-losses">-</div><div class="stat-label">Defeats</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-shots">-</div><div class="stat-label">Shots Fired</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-hits">-</div><div class="stat-label">Ships Hit</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-accuracy">-</div><div class="stat-label">Accuracy</div></div>
+      </div>
+
+      <div class="accuracy-bar-wrap">
+        <div class="accuracy-bar-label">
+          <span>Cannon Accuracy</span>
+          <span id="accuracy-pct">0%</span>
+        </div>
+        <div class="accuracy-bar">
+          <div class="accuracy-fill" id="accuracy-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="section-eyebrow" style="margin-bottom:1rem">Recent Move History</p>
+      <div id="move-history-wrap">
+        <div class="empty-state" style="padding:1.5rem">
+          <p>No battles recorded yet.</p>
+        </div>
+      </div>
+
+      <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap">
+        <button class="btn btn-ghost" onclick="showView('lobby')">Back to Lobby</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ══════════════════════════════════════════════
+    // CONFIG
+    // ══════════════════════════════════════════════
+    const API = 'https://persistent-waters.onrender.com';
+
+    // ══════════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════════
+    let state = {
+      playerId: null,
+      username: null,
+      currentGameId: null,
+      gridSize: 8,
+      selectedShips: [],
+    };
+
+    // ══════════════════════════════════════════════
+    // INIT
+    // ══════════════════════════════════════════════
+    function init() {
+      const savedId = localStorage.getItem('pw_player_id');
+      const savedName = localStorage.getItem('pw_username');
+      if (savedId && savedName) {
+        state.playerId = parseInt(savedId);
+        state.username = savedName;
+        updateNavPlayer();
+        showView('lobby');
+        loadLobby();
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // VIEW MANAGEMENT
+    // ══════════════════════════════════════════════
+    function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    window.scrollTo(0, 0);
+    const navbar = document.getElementById('navbar');
+    navbar.style.display = (name === 'register') ? 'none' : 'flex';
+    if (name === 'stats') loadStats();
+    }
+
+    // ══════════════════════════════════════════════
+    // NAV
+    // ══════════════════════════════════════════════
+    function updateNavPlayer() {
+      document.getElementById('nav-username').textContent = state.username;
+    }
+
+    function logout() {
+      localStorage.removeItem('pw_player_id');
+      localStorage.removeItem('pw_username');
+      state.playerId = null;
+      state.username = null;
+      showView('register');
+    }
+
+    // ══════════════════════════════════════════════
+    // REGISTER
+    // ══════════════════════════════════════════════
+    async function register() {
+      const username = document.getElementById('reg-username').value.trim();
+      const statusEl = document.getElementById('reg-status');
+      const btn = document.getElementById('reg-btn');
+
+      if (!username) {
+        statusEl.textContent = 'Enter a captain name, ye landlubber.';
+        statusEl.className = 'register-status';
+        return;
+      }
+
+      btn.disabled = true;
+      statusEl.textContent = '';
+      statusEl.innerHTML = 'Enlisting... <span class="loading"></span>';
+
+      try {
+        const res = await fetch(API + '/api/players', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+        state.playerId = data.player_id;
+        state.username = username;
+        localStorage.setItem('pw_player_id', data.player_id);
+        localStorage.setItem('pw_username', username);
+        updateNavPlayer();
+        statusEl.textContent = res.status === 201 ? 'Welcome aboard, Captain!' : 'Welcome back, Captain!';
+        statusEl.className = 'register-status success';
+        btn.disabled = false;
+        setTimeout(() => {
+            showView('lobby');
+            loadLobby();
+        }, 800);
+        } else {
+          statusEl.textContent = data.error || 'Failed to enlist.';
+          statusEl.className = 'register-status';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        statusEl.textContent = 'Could not reach the fleet. Check your connection.';
+        statusEl.className = 'register-status';
+        btn.disabled = false;
+      }
+    }
+
+    document.getElementById('reg-username').addEventListener('keydown', e => {
+      if (e.key === 'Enter') register();
+    });
+
+    // ══════════════════════════════════════════════
+    // LOBBY
+    // ══════════════════════════════════════════════
+    async function loadLobby() {
+      const listEl = document.getElementById('games-list');
+      listEl.innerHTML = '<div class="empty-state"><span class="skull-icon">⚓</span><p>Scanning the seas...</p></div>';
+
+      try {
+        const res = await fetch(API + '/api/games');
+        const data = await res.json();
+        const games = data.games || [];
+
+        if (games.length === 0) {
+          listEl.innerHTML = '<div class="empty-state"><span class="skull-icon">☠</span><p>No open battles. Commission one above.</p></div>';
+          return;
+        }
+
+        listEl.innerHTML = '';
+        const wrap = document.createElement('div');
+        wrap.className = 'games-grid';
+
+        games.forEach(g => {
+          const isMine = g.active_players > 0; // simplification — we check join button state
+          const row = document.createElement('div');
+          row.className = 'game-row';
+          row.innerHTML = `
+            <div class="game-row-left">
+              <span class="game-id">#${g.game_id}</span>
+              <div class="game-meta">
+                <span class="game-meta-title">Grid ${g.grid_size}x${g.grid_size}</span>
+                <span class="game-meta-sub">${g.active_players} / ${g.max_players} sailors aboard</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem">
+              <span class="game-status-pill pill-waiting">Waiting</span>
+              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size})">
+                ⚔ Board
+              </button>
+            </div>
+          `;
+          wrap.appendChild(row);
+        });
+
+        listEl.appendChild(wrap);
+      } catch (e) {
+        listEl.innerHTML = '<div class="empty-state"><p style="color:var(--crimson)">Failed to load games. Try refreshing.</p></div>';
+      }
+    }
+
+    async function createGame() {
+      const gridSize = parseInt(document.getElementById('grid-size').value);
+      const maxPlayers = parseInt(document.getElementById('max-players').value);
+      const errEl = document.getElementById('create-error');
+      const sucEl = document.getElementById('create-success');
+      const btn = document.getElementById('create-btn');
+
+      errEl.classList.remove('visible');
+      sucEl.classList.remove('visible');
+
+      if (gridSize < 5 || gridSize > 15) {
+        errEl.textContent = 'Grid size must be between 5 and 15.';
+        errEl.classList.add('visible');
+        return;
+      }
+      if (maxPlayers < 2 || maxPlayers > 10) {
+        errEl.textContent = 'Max players must be between 2 and 10.';
+        errEl.classList.add('visible');
+        return;
+      }
+
+      btn.disabled = true;
+      try {
+        const res = await fetch(API + '/api/games', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ creator_id: state.playerId, grid_size: gridSize, max_players: maxPlayers })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          sucEl.textContent = `Battle #${data.game_id} commissioned! Proceeding to ship deployment...`;
+          sucEl.classList.add('visible');
+          setTimeout(() => {
+            startPlacement(data.game_id, gridSize);
+          }, 1000);
+        } else {
+          errEl.textContent = data.error || 'Failed to create game.';
+          errEl.classList.add('visible');
+          btn.disabled = false;
+        }
+      } catch (e) {
+        errEl.textContent = 'Could not reach the fleet.';
+        errEl.classList.add('visible');
+        btn.disabled = false;
+      }
+    }
+
+    async function joinGame(gameId, gridSize) {
+      try {
+        const res = await fetch(API + '/api/games/' + gameId + '/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player_id: state.playerId })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          startPlacement(gameId, gridSize);
+        } else {
+          alert('Could not join: ' + (data.error || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Could not reach the fleet.');
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // SHIP PLACEMENT
+    // ══════════════════════════════════════════════
+    function startPlacement(gameId, gridSize) {
+      state.currentGameId = gameId;
+      state.gridSize = gridSize;
+      state.selectedShips = [];
+      showView('place');
+      buildPlacementGrid(gridSize);
+      updateShipSlots();
+    }
+
+    function buildPlacementGrid(size) {
+      const colLabels = document.getElementById('col-labels');
+      const gridEl = document.getElementById('placement-grid');
+      colLabels.innerHTML = '';
+      gridEl.innerHTML = '';
+
+      // Col labels (A-O)
+      const spacer = document.createElement('div');
+      spacer.style.width = '2.5rem';
+      colLabels.appendChild(spacer);
+
+      for (let c = 0; c < size; c++) {
+        const lbl = document.createElement('div');
+        lbl.className = 'grid-col-label';
+        lbl.textContent = String.fromCharCode(65 + c);
+        colLabels.appendChild(lbl);
+      }
+
+      // Rows
+      for (let r = 0; r < size; r++) {
+        const row = document.createElement('div');
+        row.className = 'grid-row';
+
+        const rowLbl = document.createElement('div');
+        rowLbl.className = 'grid-row-label';
+        rowLbl.textContent = r + 1;
+        row.appendChild(rowLbl);
+
+        for (let c = 0; c < size; c++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+          cell.addEventListener('click', () => toggleShip(r, c, cell));
+          row.appendChild(cell);
+        }
+        gridEl.appendChild(row);
+      }
+    }
+
+    function toggleShip(row, col, cell) {
+      const key = row + ',' + col;
+      const idx = state.selectedShips.findIndex(s => s.row === row && s.col === col);
+
+      if (idx >= 0) {
+        state.selectedShips.splice(idx, 1);
+        cell.classList.remove('ship');
+      } else {
+        if (state.selectedShips.length >= 3) {
+          const statusEl = document.getElementById('place-status');
+          statusEl.textContent = 'Only 3 ships allowed. Remove one first.';
+          statusEl.className = 'placement-status error';
+          setTimeout(() => {
+            statusEl.textContent = state.selectedShips.length + ' of 3 ships placed';
+            statusEl.className = 'placement-status';
+          }, 1500);
+          return;
+        }
+        state.selectedShips.push({ row, col });
+        cell.classList.add('ship');
+      }
+
+      updateShipSlots();
+    }
+
+    function updateShipSlots() {
+      for (let i = 0; i < 3; i++) {
+        const slot = document.getElementById('slot-' + i);
+        if (state.selectedShips[i]) {
+          const s = state.selectedShips[i];
+          const colLetter = String.fromCharCode(65 + s.col);
+          slot.classList.add('placed');
+          slot.innerHTML = `<div class="ship-dot"></div> Ship ${i+1} — ${colLetter}${s.row + 1}`;
+        } else {
+          slot.classList.remove('placed');
+          slot.innerHTML = `<div class="ship-dot"></div> Ship ${i+1}`;
+        }
+      }
+
+      const statusEl = document.getElementById('place-status');
+      const btn = document.getElementById('confirm-place-btn');
+      const count = state.selectedShips.length;
+
+      statusEl.textContent = count + ' of 3 ships placed';
+      statusEl.className = 'placement-status';
+      btn.disabled = count < 3;
+    }
+
+    function clearShips() {
+      state.selectedShips = [];
+      document.querySelectorAll('#placement-grid .grid-cell.ship').forEach(c => c.classList.remove('ship'));
+      updateShipSlots();
+    }
+
+    async function confirmPlacement() {
+      const btn = document.getElementById('confirm-place-btn');
+      const alertEl = document.getElementById('place-alert');
+      btn.disabled = true;
+      alertEl.className = 'alert';
+
+      try {
+        const res = await fetch(API + '/api/games/' + state.currentGameId + '/place', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ player_id: state.playerId, ships: state.selectedShips })
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          alertEl.textContent = 'Fleet deployed! Waiting for battle to begin. Check back in the lobby for game status.';
+          alertEl.className = 'alert alert-success visible';
+          setTimeout(() => {
+            showView('lobby');
+            loadLobby();
+          }, 2500);
+        } else {
+          alertEl.textContent = data.error || 'Failed to deploy fleet.';
+          alertEl.className = 'alert alert-error visible';
+          btn.disabled = false;
+        }
+      } catch (e) {
+        alertEl.textContent = 'Could not reach the fleet.';
+        alertEl.className = 'alert alert-error visible';
+        btn.disabled = false;
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // STATS
+    // ══════════════════════════════════════════════
+    async function loadStats() {
+      if (!state.playerId) return;
+
+      document.getElementById('stats-player-name').textContent = 'Captain ' + state.username;
+
+      try {
+        const res = await fetch(API + '/api/players/' + state.playerId + '/stats');
+        const data = await res.json();
+
+        if (res.ok) {
+          document.getElementById('stat-games').textContent = data.games_played;
+          document.getElementById('stat-wins').textContent = data.wins;
+          document.getElementById('stat-losses').textContent = data.losses;
+          document.getElementById('stat-shots').textContent = data.total_shots;
+          document.getElementById('stat-hits').textContent = data.total_hits;
+
+          const acc = (data.accuracy * 100).toFixed(1);
+          document.getElementById('stat-accuracy').textContent = acc + '%';
+          document.getElementById('accuracy-pct').textContent = acc + '%';
+          document.getElementById('accuracy-fill').style.width = acc + '%';
+        }
+      } catch (e) {
+        console.error('Failed to load stats', e);
+      }
+
+      // Load recent moves from last known game
+      if (state.currentGameId) {
+        try {
+          const res = await fetch(API + '/api/games/' + state.currentGameId + '/moves');
+          const moves = await res.json();
+
+          if (res.ok && moves.length > 0) {
+            const wrap = document.getElementById('move-history-wrap');
+            wrap.innerHTML = '';
+            const table = document.createElement('table');
+            table.className = 'history-table';
+            table.innerHTML = `
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Player</th>
+                  <th>Target</th>
+                  <th>Result</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            `;
+            const tbody = table.querySelector('tbody');
+            moves.forEach((m, i) => {
+              const colLetter = String.fromCharCode(65 + m.col);
+              const coord = colLetter + (m.row + 1);
+              const time = new Date(m.created_at).toLocaleTimeString();
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td>${i + 1}</td>
+                <td>${m.player_id}</td>
+                <td>${coord}</td>
+                <td class="${m.result === 'hit' ? 'result-hit' : 'result-miss'}">${m.result === 'hit' ? '💥 Hit' : '○ Miss'}</td>
+                <td style="color:var(--mist); font-size:0.75rem">${time}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+            wrap.appendChild(table);
+          }
+        } catch (e) {
+          console.error('Failed to load moves', e);
+        }
+      }
+    }
+
+    // ══════════════════════════════════════════════
+    // START
+    // ══════════════════════════════════════════════
+    init();
+  </script>
+</body>
+</html>
