@@ -41,9 +41,9 @@ function handleCreatePlayer(): void {
     }
 
     $username = trim($body['username']);
-    if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $username)) {
-    errorResponse('username contains invalid characters', 400);
-}
+   // if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $username)) {
+   // errorResponse('username contains invalid characters', 400);
+
 
     try {
         // Duplicate usernames are not allowed.
