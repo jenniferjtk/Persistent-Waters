@@ -26,6 +26,10 @@ if (!isset($parts[0]) || $parts[0] !== 'api') {
 }
 
 switch (true) {
+    
+    case $method === 'GET' && $path === 'api/health':
+    jsonResponse(['status' => 'ok']);
+    break;
 
     case $method === 'POST' && $path === 'api/reset':
         require_once 'routes/reset.php';
