@@ -388,7 +388,12 @@ function handlePlaceShips(int $gameId): void {
         $stmt->execute([$gameId]);
         $counts = $stmt->fetch();
 
-        if ((int)$counts['total'] === (int)$counts['placed']) {
+        $gameStmt = $db->prepare('SELECT max_players FROM games WHERE game_id = ?');
+        $gameStmt->execute([$gameId]);
+        $gameRow = $gameStmt->fetch();
+
+        if ((int)$counts['total'] === (int)$counts['placed'] && 
+            (int)$counts['total'] >= (int)$gameRow['max_players']) {
             $db->prepare("UPDATE games SET status = 'active' WHERE game_id = ?")->execute([$gameId]);
         }
 
