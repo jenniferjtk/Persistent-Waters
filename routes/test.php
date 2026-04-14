@@ -90,7 +90,7 @@ function handleTestRestart(int $gameId): void {
         $db->beginTransaction();
         $db->prepare('DELETE FROM moves WHERE game_id = ?')->execute([$gameId]);
         $db->prepare('DELETE FROM ships WHERE game_id = ?')->execute([$gameId]);
-        $db->prepare("UPDATE games SET status = 'waiting', current_turn_index = 0 WHERE game_id = ?")->execute([$gameId]);
+        $db->prepare("UPDATE games SET status = 'waiting_setup', current_turn_index = 0 WHERE game_id = ?")->execute([$gameId]);
         $db->prepare("UPDATE game_players SET is_eliminated = FALSE, ships_placed = FALSE WHERE game_id = ?")->execute([$gameId]);
         $db->commit();
 
