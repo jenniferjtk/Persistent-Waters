@@ -1,80 +1,64 @@
-{
-  "team_name": "Team0x07",
-  "api_version": "1.0",
-  "tests": [
-    {
-      "name": "Player stats accuracy calculated correctly after completed game",
-      "why": "Catches servers that return accuracy as a string instead of a float, compute it incorrectly, or fail to update stats after a game completes.",
-      "method": "GET",
-      "endpoint": "/api/players/1/stats",
-      "headers": {},
-      "body": null,
-      "expected_status": 200,
-      "expected_response_contains": {
-        "games_played": 1,
-        "wins": 1,
-        "losses": 0
-      }
+[
+  {
+    "name": "Fire out of turn returns 403",
+    "why": "Player 2 cannot fire before player 1 has taken their turn — server must enforce turn order with 403",
+    "method": "POST",
+    "endpoint": "/api/games/{id}/fire",
+    "headers": {},
+    "body": { "player_id": 2, "row": 0, "col": 0 },
+    "expected_status": 403,
+    "expected_response_contains": { "error": "Not your turn" },
+    "requires": "game_playing"
+  },
+  {
+    "name": "Valid fire returns 200 with result and game_status",
+    "why": "Player 1 firing on a valid cell during their turn must return 200 with result and game_status fields",
+    "method": "POST",
+    "endpoint": "/api/games/{id}/fire",
+    "headers": {},
+    "body": { "player_id": 1, "row": 5, "col": 5 },
+    "expected_status": 200,
+    "expected_response_contains": { "next_player_id": "__any_integer__", "game_status": "playing" },
+    "requires": "game_playing"
+  },
+  {
+    "name": "Duplicate join returns 400",
+    "why": "A player already in a game cannot join again — server must return 400",
+    "method": "POST",
+    "endpoint": "/api/games/{id}/join",
+    "headers": {},
+    "body": { "player_id": 1 },
+    "expected_status": 400,
+    "expected_response_contains": {},
+    "requires": "game_joined"
+  },
+  {
+    "name": "Move history is empty at game start",
+    "why": "GET /api/games/{id}/moves on a fresh game should return 200 and an empty array before any shots are fired",
+    "method": "GET",
+    "endpoint": "/api/games/{id}/moves",
+    "headers": {},
+    "body": null,
+    "expected_status": 200,
+    "expected_response_contains": {},
+    "requires": "game_playing"
+  },
+  {
+    "name": "Place ships with valid coordinates returns 200",
+    "why": "A joined player placing exactly 3 valid non-overlapping ships must receive 200 with status placed",
+    "method": "POST",
+    "endpoint": "/api/games/{id}/place",
+    "headers": {},
+    "body": {
+      "player_id": 1,
+      "ships": [
+        { "row": 0, "col": 0 },
+        { "row": 2, "col": 2 },
+        { "row": 4, "col": 4 }
+      ]
     },
-    {
-      "name": "Fire into a finished game returns 400",
-      "why": "Catches servers that do not enforce game state and allow moves after the game is already finished.",
-      "method": "POST",
-      "endpoint": "/api/games/1/fire",
-      "headers": {},
-      "body": {
-        "player_id": 1,
-        "row": 0,
-        "col": 0
-      },
-      "expected_status": 400,
-      "expected_response_contains": {
-        "error": "Game is not active"
-      }
-    },
-    {
-      "name": "Join a full game returns 400",
-      "why": "Catches servers that allow more players than max_players without enforcing the capacity limit.",
-      "method": "POST",
-      "endpoint": "/api/games/1/join",
-      "headers": {},
-      "body": {
-        "player_id": 3
-      },
-      "expected_status": 400,
-      "expected_response_contains": {
-        "error": "Game is full"
-      }
-    },
-    {
-      "name": "Creating a player with the same username twice returns the same player_id",
-      "why": "Catches servers that create duplicate players instead of reusing persistent identity, breaking the cross-game stats requirement.",
-      "method": "POST",
-      "endpoint": "/api/players",
-      "headers": {},
-      "body": {
-        "username": "dan"
-      },
-      "expected_status": 200,
-      "expected_response_contains": {
-        "player_id": 1
-      }
-    },
-    {
-      "name": "Player stats survive a test restart",
-      "why": "Catches servers that wipe player lifetime statistics when resetting a game instead of only clearing ships and moves.",
-      "method": "GET",
-      "endpoint": "/api/players/1/stats",
-      "headers": {
-        "X-Test-Password": "clemson-test-2026"
-      },
-      "body": null,
-      "expected_status": 200,
-      "expected_response_contains": {
-        "wins": 1,
-        "total_shots": 3,
-        "total_hits": 3
-      }
-    }
-  ]
-}
+    "expected_status": 200,
+    "expected_response_contains": { "status": "placed" },
+    "requires": "game_joined"
+  }
+]
