@@ -23,7 +23,7 @@ function handleGetGames(): void {
                 COUNT(gp.player_id) FILTER (WHERE gp.is_eliminated = FALSE) AS active_players
             FROM games g
             LEFT JOIN game_players gp ON gp.game_id = g.game_id
-            WHERE g.status = \'waiting\'
+            WHERE g.status = \'waiting_setup\'
             GROUP BY g.game_id
             ORDER BY g.game_id DESC
             LIMIT 50
@@ -71,7 +71,7 @@ function handleCreateGame(): void {
 
         $stmt = $db->prepare("
             INSERT INTO games (creator_id, grid_size, max_players, status, current_turn_index)
-            VALUES (?, ?, ?, 'waiting', 0)
+            VALUES (?, ?, ?, 'waiting_setup', 0)
             RETURNING game_id
         ");
         $stmt->execute([$creatorId, $gridSize, $maxPlayers]);
@@ -80,7 +80,7 @@ function handleCreateGame(): void {
         $db->commit();
         jsonResponse([
             'game_id'   => (int)$gameId,
-            'status'    => 'waiting',
+            'status'    => 'waiting_setup',
             'grid_size' => $gridSize
         ], 201);
 
@@ -102,8 +102,8 @@ function handleJoinGame(int $gameId): void {
         $stmt->execute([$gameId]);
         $game = $stmt->fetch();
 
-        if (!$game)                          errorResponse('Game not found', 404);
-        if ($game['status'] !== 'waiting')   errorResponse('Game is not in waiting status', 400);
+        if (!$game)                                  errorResponse('Game not found', 404);
+        if ($game['status'] !== 'waiting_setup')     errorResponse('Game is not in waiting status', 400);
 
         $stmt = $db->prepare('SELECT player_id FROM players WHERE player_id = ?');
         $stmt->execute([$playerId]);
@@ -111,13 +111,13 @@ function handleJoinGame(int $gameId): void {
 
         $stmt = $db->prepare('SELECT player_id FROM game_players WHERE game_id = ? AND player_id = ?');
         $stmt->execute([$gameId, $playerId]);
-        if ($stmt->fetch()) errorResponse('Player already in this game', 409);
+        if ($stmt->fetch()) errorResponse('Player already in this game', 400);
 
         $stmt = $db->prepare('SELECT COUNT(*) as count FROM game_players WHERE game_id = ?');
         $stmt->execute([$gameId]);
         $count = (int)$stmt->fetch()['count'];
 
-       if ($count >= $game['max_players']) errorResponse('game is full', 409);
+        if ($count >= $game['max_players']) errorResponse('Game is full', 400);
 
         $stmt = $db->prepare('INSERT INTO game_players (game_id, player_id, turn_order) VALUES (?, ?, ?)');
         $stmt->execute([$gameId, $playerId, $count]);
@@ -146,12 +146,17 @@ function handleGetGame(int $gameId): void {
         $stmt->execute([$gameId]);
         $activePlayers = (int)$stmt->fetch()['count'];
 
+        $stmt = $db->prepare('SELECT COUNT(*) as count FROM moves WHERE game_id = ?');
+        $stmt->execute([$gameId]);
+        $totalMoves = (int)$stmt->fetch()['count'];
+
         jsonResponse([
             'game_id'            => (int)$game['game_id'],
             'grid_size'          => (int)$game['grid_size'],
             'status'             => $game['status'],
             'current_turn_index' => (int)$game['current_turn_index'],
-            'active_players'     => $activePlayers
+            'active_players'     => $activePlayers,
+            'total_moves'        => $totalMoves
         ]);
 
     } catch (PDOException $e) {
@@ -394,7 +399,7 @@ function handlePlaceShips(int $gameId): void {
 
         if ((int)$counts['total'] === (int)$counts['placed'] && 
             (int)$counts['total'] >= (int)$gameRow['max_players']) {
-            $db->prepare("UPDATE games SET status = 'active' WHERE game_id = ?")->execute([$gameId]);
+            $db->prepare("UPDATE games SET status = 'playing' WHERE game_id = ?")->execute([$gameId]);
         }
 
         $db->commit();
@@ -423,8 +428,9 @@ function handleFire(int $gameId): void {
         $stmt->execute([$gameId]);
         $game = $stmt->fetch();
 
-        if (!$game)                       errorResponse('Game not found', 404);
-        if ($game['status'] !== 'active') errorResponse('Game is not active', 400);
+        if (!$game)                          errorResponse('Game not found', 404);
+        if ($game['status'] === 'finished')  errorResponse('Game is not active', 400);
+        if ($game['status'] !== 'playing')   errorResponse('Game is not active', 400);
 
         // Bounds check first
         if ($row < 0 || $row >= $game['grid_size'] || $col < 0 || $col >= $game['grid_size']) {
@@ -570,7 +576,7 @@ function handleFire(int $gameId): void {
         jsonResponse([
             'result'         => $result,
             'next_player_id' => (int)$nextPlayer['player_id'],
-            'game_status'    => 'active'
+            'game_status'    => 'playing'
         ]);
 
     } catch (PDOException $e) {
