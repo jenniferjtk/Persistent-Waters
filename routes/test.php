@@ -142,7 +142,7 @@ function handleTestPlaceShips(int $gameId): void {
         $countStmt->execute([$gameId]);
         $counts = $countStmt->fetch();
         if ($counts['total'] == $counts['placed']) {
-            $db->prepare("UPDATE games SET status = 'active' WHERE game_id = ?")->execute([$gameId]);
+            $db->prepare("UPDATE games SET status = 'playing' WHERE game_id = ?")->execute([$gameId]);
         }
 
         $db->commit();

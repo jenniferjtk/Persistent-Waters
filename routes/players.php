@@ -6,6 +6,23 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../helpers/response.php';
 
+function handleGetAllPlayers(): void {
+    $db = getDB();
+    try {
+        $stmt = $db->query('SELECT player_id, username FROM players ORDER BY player_id ASC');
+        $players = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $players[] = [
+                'player_id' => (int)$row['player_id'],
+                'username'  => $row['username'],
+            ];
+        }
+        jsonResponse(['players' => $players]);
+    } catch (PDOException $e) {
+        errorResponse('Failed to get players', 500);
+    }
+}
+
 function handleGetPlayer(int $playerId): void {
     $db = getDB();
 
@@ -41,26 +58,27 @@ function handleCreatePlayer(): void {
     }
 
     $username = trim($body['username']);
-   // if (!preg_match('/^[a-zA-Z0-9_\-]+$/', $username)) {
-   // errorResponse('username contains invalid characters', 400);
 
+    // Only alphanumeric + underscore, max 30 chars
+    if (!preg_match('/^[a-zA-Z0-9_]{1,30}$/', $username)) {
+        errorResponse('username may only contain letters, numbers, and underscores (max 30 chars)', 400);
+    }
 
     try {
-        // Duplicate usernames are not allowed.
+        // Duplicate usernames return 409
         $stmt = $db->prepare('SELECT player_id FROM players WHERE username = ?');
         $stmt->execute([$username]);
         $existing = $stmt->fetch();
 
-       if ($existing) {
-        jsonResponse(['player_id' => (int)$existing['player_id'], 'username' => $username], 200);
-        return;
-    }
+        if ($existing) {
+            errorResponse('username already taken', 409);
+        }
 
         $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');
         $stmt->execute([$username]);
         $player = $stmt->fetch();
 
-        jsonResponse(['player_id' => (int)$player['player_id']], 201);
+        jsonResponse(['player_id' => (int)$player['player_id'], 'username' => $username], 201);
 
     } catch (PDOException $e) {
         errorResponse('Failed to create player', 500);

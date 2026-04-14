@@ -17,7 +17,8 @@ function handleGetMoves(int $gameId): void {
         }
 
         $stmt = $db->prepare('
-            SELECT 
+            SELECT
+                game_id,
                 player_id,
                 row_pos AS row,
                 col_pos AS col,
@@ -29,7 +30,14 @@ function handleGetMoves(int $gameId): void {
         ');
         $stmt->execute([$gameId]);
 
-        $moves = $stmt->fetchAll();
+        $moves = array_map(fn($m) => [
+            'game_id'    => (int)$m['game_id'],
+            'player_id'  => (int)$m['player_id'],
+            'row'        => (int)$m['row'],
+            'col'        => (int)$m['col'],
+            'result'     => $m['result'],
+            'created_at' => $m['created_at'],
+        ], $stmt->fetchAll());
 
         jsonResponse($moves, 200);
 

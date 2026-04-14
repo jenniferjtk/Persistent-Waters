@@ -46,6 +46,11 @@ switch (true) {
         handleCreatePlayer();
         break;
 
+    case $method === 'GET' && $path === 'api/players':
+        require_once 'routes/players.php';
+        handleGetAllPlayers();
+        break;
+
     case $method === 'GET'
         && isset($parts[1], $parts[2])
         && $parts[1] === 'players'

@@ -60,7 +60,7 @@ function handleCreateGame(): void {
     $maxPlayers = (int)$body['max_players'];
 
     if ($gridSize < 5 || $gridSize > 15) errorResponse('grid_size must be between 5 and 15', 400);
-    if ($maxPlayers < 1)                 errorResponse('max_players must be at least 1', 400);
+    if ($maxPlayers < 2)                 errorResponse('max_players must be at least 2', 400);
 
     try {
         $stmt = $db->prepare('SELECT player_id FROM players WHERE player_id = ?');
@@ -95,6 +95,7 @@ function handleJoinGame(int $gameId): void {
     $body = json_decode(file_get_contents('php://input'), true);
 
     if (empty($body['player_id'])) errorResponse('player_id is required', 400);
+    if (!is_numeric($body['player_id'])) errorResponse('player_id must be an integer', 400);
     $playerId = (int)$body['player_id'];
 
     try {
@@ -150,13 +151,23 @@ function handleGetGame(int $gameId): void {
         $stmt->execute([$gameId]);
         $totalMoves = (int)$stmt->fetch()['count'];
 
+        // Resolve which player_id holds the current turn (null until playing)
+        $currentTurnPlayerId = null;
+        if ($game['status'] === 'playing' || $game['status'] === 'finished') {
+            $stmt = $db->prepare('SELECT player_id FROM game_players WHERE game_id = ? AND turn_order = ?');
+            $stmt->execute([$gameId, (int)$game['current_turn_index']]);
+            $turnRow = $stmt->fetch();
+            if ($turnRow) $currentTurnPlayerId = (int)$turnRow['player_id'];
+        }
+
         jsonResponse([
-            'game_id'            => (int)$game['game_id'],
-            'grid_size'          => (int)$game['grid_size'],
-            'status'             => $game['status'],
-            'current_turn_index' => (int)$game['current_turn_index'],
-            'active_players'     => $activePlayers,
-            'total_moves'        => $totalMoves
+            'game_id'                 => (int)$game['game_id'],
+            'grid_size'               => (int)$game['grid_size'],
+            'status'                  => $game['status'],
+            'current_turn_index'      => (int)$game['current_turn_index'],
+            'current_turn_player_id'  => $currentTurnPlayerId,
+            'active_players'          => $activePlayers,
+            'total_moves'             => $totalMoves
         ]);
 
     } catch (PDOException $e) {
@@ -360,7 +371,7 @@ function handlePlaceShips(int $gameId): void {
         $gp = $stmt->fetch();
 
         if (!$gp)                errorResponse('Player not in this game', 403);
-        if ($gp['ships_placed']) errorResponse('Ships already placed', 400);
+        if (gameBool($gp['ships_placed'])) errorResponse('Ships already placed', 409);
 
         $coords = [];
         foreach ($ships as $ship) {
@@ -453,18 +464,19 @@ function handleFire(int $gameId): void {
         // FIX: Player exists but not in this game → 403 (not 404)
         if (!$gp) errorResponse('Player not in this game or already eliminated', 403);
 
-        // Turn enforcement
-        if ((int)$game['current_turn_index'] !== (int)$gp['turn_order']) {
-            errorResponse('Not your turn', 403);
-        }
-
-        // Duplicate move check (same player, same cell)
+        // Duplicate move check BEFORE turn enforcement — same player, same cell → 409
+        // regardless of whose turn it currently is
         $stmt = $db->prepare('
             SELECT move_id FROM moves
             WHERE game_id = ? AND player_id = ? AND row_pos = ? AND col_pos = ?
         ');
         $stmt->execute([$gameId, $playerId, $row, $col]);
-       if ($stmt->fetch()) errorResponse('Duplicate move: already fired at this coordinate', 409);
+        if ($stmt->fetch()) errorResponse('Duplicate move: already fired at this coordinate', 409);
+
+        // Turn enforcement
+        if ((int)$game['current_turn_index'] !== (int)$gp['turn_order']) {
+            errorResponse('Not your turn', 403);
+        }
 
         // Hit detection — any unhit ship belonging to another player
         $stmt = $db->prepare('
