@@ -53,7 +53,7 @@ function handleCreatePlayer(): void {
     if (isset($body['player_id'])) {
         errorResponse('player_id must not be supplied by client', 400);
     }
-    if (empty($body['username'])) {
+    if (empty($body['username']) || !is_string($body['username'])) {
         errorResponse('username is required', 400);
     }
 

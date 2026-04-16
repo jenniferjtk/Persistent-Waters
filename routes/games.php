@@ -51,9 +51,12 @@ function handleCreateGame(): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
-    if (empty($body['creator_id']))  errorResponse('creator_id is required', 400);
-    if (empty($body['grid_size']))   errorResponse('grid_size is required', 400);
-    if (empty($body['max_players'])) errorResponse('max_players is required', 400);
+    if (!isset($body['creator_id']))  errorResponse('creator_id is required', 400);
+    if (!isset($body['grid_size']))   errorResponse('grid_size is required', 400);
+    if (!isset($body['max_players'])) errorResponse('max_players is required', 400);
+    if (!is_int($body['creator_id']))  errorResponse('creator_id must be an integer', 400);
+    if (!is_int($body['grid_size']))   errorResponse('grid_size must be an integer', 400);
+    if (!is_int($body['max_players'])) errorResponse('max_players must be an integer', 400);
 
     $creatorId  = (int)$body['creator_id'];
     $gridSize   = (int)$body['grid_size'];
@@ -65,7 +68,7 @@ function handleCreateGame(): void {
     try {
         $stmt = $db->prepare('SELECT player_id FROM players WHERE player_id = ?');
         $stmt->execute([$creatorId]);
-        if (!$stmt->fetch()) errorResponse('Creator player not found', 404);
+        if (!$stmt->fetch()) errorResponse('Creator player not found', 400);
 
         $db->beginTransaction();
 
@@ -94,8 +97,8 @@ function handleJoinGame(int $gameId): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
-    if (empty($body['player_id'])) errorResponse('player_id is required', 400);
-    if (!is_numeric($body['player_id'])) errorResponse('player_id must be an integer', 400);
+    if (!isset($body['player_id'])) errorResponse('player_id is required', 400);
+    if (!is_int($body['player_id'])) errorResponse('player_id must be an integer', 400);
     $playerId = (int)$body['player_id'];
 
     try {
@@ -151,6 +154,38 @@ function handleGetGame(int $gameId): void {
         $stmt->execute([$gameId]);
         $totalMoves = (int)$stmt->fetch()['count'];
 
+        $stmt = $db->prepare('
+            SELECT
+                gp.player_id,
+                p.username,
+                gp.turn_order,
+                gp.ships_placed,
+                gp.is_eliminated,
+                (
+                    SELECT COUNT(*)
+                    FROM ships s
+                    WHERE s.game_id = gp.game_id
+                    AND s.player_id = gp.player_id
+                    AND s.is_hit = FALSE
+                ) AS ships_remaining
+            FROM game_players gp
+            JOIN players p ON p.player_id = gp.player_id
+            WHERE gp.game_id = ?
+            ORDER BY gp.turn_order ASC
+        ');
+        $stmt->execute([$gameId]);
+        $players = [];
+        foreach ($stmt->fetchAll() as $row) {
+            $players[] = [
+                'player_id'        => (int)$row['player_id'],
+                'username'         => $row['username'],
+                'turn_order'       => (int)$row['turn_order'],
+                'ships_placed'     => gameBool($row['ships_placed']),
+                'is_eliminated'    => gameBool($row['is_eliminated']),
+                'ships_remaining'  => (int)$row['ships_remaining'],
+            ];
+        }
+
         // Resolve which player_id holds the current turn (null until playing)
         $currentTurnPlayerId = null;
         if ($game['status'] === 'playing' || $game['status'] === 'finished') {
@@ -164,6 +199,7 @@ function handleGetGame(int $gameId): void {
             'game_id'                 => (int)$game['game_id'],
             'grid_size'               => (int)$game['grid_size'],
             'status'                  => $game['status'],
+            'players'                 => $players,
             'current_turn_index'      => (int)$game['current_turn_index'],
             'current_turn_player_id'  => $currentTurnPlayerId,
             'active_players'          => $activePlayers,
@@ -346,7 +382,8 @@ function handlePlaceShips(int $gameId): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
-    if (empty($body['player_id']))                          errorResponse('player_id is required', 400);
+    if (!isset($body['player_id']))                         errorResponse('player_id is required', 400);
+    if (!is_int($body['player_id']))                        errorResponse('player_id must be an integer', 400);
     if (!isset($body['ships']) || !is_array($body['ships'])) errorResponse('ships array is required', 400);
     if (count($body['ships']) !== 3)                        errorResponse('Exactly 3 ships required', 400);
 
@@ -375,14 +412,19 @@ function handlePlaceShips(int $gameId): void {
 
         $coords = [];
         foreach ($ships as $ship) {
-            if (!isset($ship['row'], $ship['col'])) errorResponse('Each ship needs row and col', 400);
+            if (!is_array($ship) || !isset($ship['row'], $ship['col'])) {
+                errorResponse('Each ship needs row and col', 400);
+            }
+            if (!is_int($ship['row']) || !is_int($ship['col'])) {
+                errorResponse('Ship coordinates must be integers', 400);
+            }
             $row = (int)$ship['row'];
             $col = (int)$ship['col'];
             if ($row < 0 || $row >= $game['grid_size'] || $col < 0 || $col >= $game['grid_size']) {
                 errorResponse('Ship coordinates out of bounds', 400);
             }
             $key = "$row,$col";
-            if (in_array($key, $coords)) errorResponse('Duplicate ship coordinates', 409);
+            if (in_array($key, $coords)) errorResponse('Duplicate ship coordinates', 400);
             $coords[] = $key;
         }
 
@@ -426,9 +468,12 @@ function handleFire(int $gameId): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
-    if (empty($body['player_id'])) errorResponse('player_id is required', 400);
+    if (!isset($body['player_id'])) errorResponse('player_id is required', 400);
     if (!isset($body['row']))      errorResponse('row is required', 400);
     if (!isset($body['col']))      errorResponse('col is required', 400);
+    if (!is_int($body['player_id'])) errorResponse('player_id must be an integer', 400);
+    if (!is_int($body['row']))       errorResponse('row must be an integer', 400);
+    if (!is_int($body['col']))       errorResponse('col must be an integer', 400);
 
     $playerId = (int)$body['player_id'];
     $row      = (int)$body['row'];
@@ -465,13 +510,13 @@ function handleFire(int $gameId): void {
         // FIX: Player exists but not in this game → 403 (not 404)
         if (!$gp) errorResponse('Player not in this game or already eliminated', 403);
 
-        // Duplicate move check BEFORE turn enforcement — same player, same cell → 409
+        // Duplicate move check BEFORE turn enforcement — same game, same cell → 409
         // regardless of whose turn it currently is
         $stmt = $db->prepare('
             SELECT move_id FROM moves
-            WHERE game_id = ? AND player_id = ? AND row_pos = ? AND col_pos = ?
+            WHERE game_id = ? AND row_pos = ? AND col_pos = ?
         ');
-        $stmt->execute([$gameId, $playerId, $row, $col]);
+        $stmt->execute([$gameId, $row, $col]);
         if ($stmt->fetch()) errorResponse('Duplicate move: already fired at this coordinate', 409);
 
         // Turn enforcement
@@ -589,7 +634,7 @@ function handleFire(int $gameId): void {
         jsonResponse([
             'result'         => $result,
             'next_player_id' => (int)$nextPlayer['player_id'],
-            'game_status'    => 'active'
+            'game_status'    => 'playing'
         ]);
 
     } catch (PDOException $e) {
