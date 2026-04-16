@@ -407,7 +407,7 @@ function handlePlaceShips(int $gameId): void {
         $stmt->execute([$gameId, $playerId]);
         $gp = $stmt->fetch();
 
-        if (!$gp)                errorResponse('Player not in this game', 403);
+        if (!$gp)                errorResponse('Player not in this game', 400);
         if (gameBool($gp['ships_placed'])) errorResponse('Ships already placed', 409);
 
         $coords = [];
