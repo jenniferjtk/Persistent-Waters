@@ -14,18 +14,19 @@ function checkTestAuth(): void {
         $headers = [];
     }
 
+    $normalized = [];
+    foreach ($headers as $name => $value) {
+        $normalized[strtolower((string)$name)] = $value;
+    }
+
     foreach ($_SERVER as $key => $value) {
         if (str_starts_with($key, 'HTTP_')) {
-            $name = str_replace('_', '-', substr($key, 5));
-            $headers[$name] = $value;
+            $name = strtolower(str_replace('_', '-', substr($key, 5)));
+            $normalized[$name] = $value;
         }
     }
 
-    $headers = array_change_key_case($headers, CASE_LOWER);
-    // Accept both header names
-    $password = $headers['x-test-password']
-        ?? $headers['x-test-mode']
-        ?? '';
+    $password = $normalized['x-test-password'] ?? '';
     if ($password !== TEST_PASSWORD) {
         errorResponse('Forbidden', 403);
     }

@@ -382,7 +382,7 @@ function handlePlaceShips(int $gameId): void {
                 errorResponse('Ship coordinates out of bounds', 400);
             }
             $key = "$row,$col";
-            if (in_array($key, $coords)) errorResponse('Duplicate ship coordinates', 400);
+            if (in_array($key, $coords)) errorResponse('Duplicate ship coordinates', 409);
             $coords[] = $key;
         }
 
@@ -439,9 +439,10 @@ function handleFire(int $gameId): void {
         $stmt->execute([$gameId]);
         $game = $stmt->fetch();
 
-        if (!$game)                          errorResponse('Game not found', 404);
-        if ($game['status'] === 'finished')  errorResponse('Game is not active', 400);
-        if ($game['status'] !== 'playing')   errorResponse('Game is not active', 400);
+        if (!$game)                                 errorResponse('Game not found', 404);
+        if ($game['status'] === 'finished')         errorResponse('Game is not active', 400);
+        if ($game['status'] === 'waiting_setup')    errorResponse('Ships have not been placed', 403);
+        if ($game['status'] !== 'playing')          errorResponse('Game is not active', 400);
 
         // Bounds check first
         if ($row < 0 || $row >= $game['grid_size'] || $col < 0 || $col >= $game['grid_size']) {
@@ -588,7 +589,7 @@ function handleFire(int $gameId): void {
         jsonResponse([
             'result'         => $result,
             'next_player_id' => (int)$nextPlayer['player_id'],
-            'game_status'    => 'playing'
+            'game_status'    => 'active'
         ]);
 
     } catch (PDOException $e) {
