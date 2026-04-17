@@ -74,7 +74,7 @@ function handleCreatePlayer(): void {
         $existing = $stmt->fetch();
 
         if ($existing) {
-            errorResponse('Duplicate username', 409);
+            errorResponse('Username already taken', 409);
         }
 
         $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');
