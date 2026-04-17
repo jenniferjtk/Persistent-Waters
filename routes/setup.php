@@ -7,6 +7,7 @@ function handleSetup(): void {
     try {
         $sql = file_get_contents(__DIR__ . '/../config/schema.sql');
         $db->exec($sql);
+        $db->exec('TRUNCATE TABLE moves, ships, game_players, games, players RESTART IDENTITY CASCADE');
         jsonResponse(['status' => 'setup complete']);
     } catch (PDOException $e) {
         errorResponse('Setup failed: ' . $e->getMessage(), 500);

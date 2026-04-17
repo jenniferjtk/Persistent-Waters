@@ -1,6 +1,6 @@
 <?php
 // routes/players.php
-// POST /api/players  - create or retrieve a player by username
+// POST /api/players  - create a player by username
 // GET  /api/players/{id}/stats - get player lifetime stats
 
 require_once __DIR__ . '/../config/database.php';
@@ -27,6 +27,10 @@ function handleGetPlayer(int $playerId): void {
     $db = getDB();
 
     try {
+        if ($playerId <= 0) {
+            errorResponse('Player not found', 404);
+        }
+
         $stmt = $db->prepare('SELECT player_id, username FROM players WHERE player_id = ?');
         $stmt->execute([$playerId]);
         $player = $stmt->fetch();
@@ -65,20 +69,19 @@ function handleCreatePlayer(): void {
     }
 
     try {
-        // Duplicate usernames return 409
         $stmt = $db->prepare('SELECT player_id FROM players WHERE username = ?');
         $stmt->execute([$username]);
         $existing = $stmt->fetch();
 
         if ($existing) {
-            errorResponse('username already taken', 409);
+            errorResponse('Duplicate username', 409);
         }
 
         $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');
         $stmt->execute([$username]);
         $player = $stmt->fetch();
 
-        jsonResponse(['player_id' => (int)$player['player_id'], 'username' => $username], 201);
+        jsonResponse(['player_id' => (int)$player['player_id']], 201);
 
     } catch (PDOException $e) {
         errorResponse('Failed to create player', 500);
@@ -89,6 +92,10 @@ function handleGetStats(int $playerId): void {
     $db = getDB();
 
     try {
+        if ($playerId <= 0) {
+            errorResponse('Player not found', 404);
+        }
+
         $stmt = $db->prepare('
             SELECT
                 total_games  AS games_played,

@@ -5,28 +5,7 @@ require_once __DIR__ . '/../helpers/response.php';
 define('TEST_PASSWORD', 'clemson-test-2026');
 
 function checkTestAuth(): void {
-    $headers = [];
-    if (function_exists('getallheaders')) {
-        $headers = getallheaders();
-    }
-
-    if (!is_array($headers)) {
-        $headers = [];
-    }
-
-    $normalized = [];
-    foreach ($headers as $name => $value) {
-        $normalized[strtolower((string)$name)] = $value;
-    }
-
-    foreach ($_SERVER as $key => $value) {
-        if (str_starts_with($key, 'HTTP_')) {
-            $name = strtolower(str_replace('_', '-', substr($key, 5)));
-            $normalized[$name] = $value;
-        }
-    }
-
-    $password = $normalized['x-test-password'] ?? '';
+    $password = $_SERVER['HTTP_X_TEST_PASSWORD'] ?? '';
     if ($password !== TEST_PASSWORD) {
         errorResponse('Forbidden', 403);
     }
@@ -84,6 +63,8 @@ function handleTestRoute(string $method, array $parts): void {
 function handleTestRestart(int $gameId): void {
     $db = getDB();
     try {
+        if ($gameId <= 0) errorResponse('Game not found', 404);
+
         $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
         $stmt->execute([$gameId]);
         if (!$stmt->fetch()) errorResponse('Game not found', 404);

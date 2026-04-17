@@ -62,6 +62,7 @@ function handleCreateGame(): void {
     $gridSize   = (int)$body['grid_size'];
     $maxPlayers = (int)$body['max_players'];
 
+    if ($creatorId <= 0)                 errorResponse('Creator player not found', 400);
     if ($gridSize < 5 || $gridSize > 15) errorResponse('grid_size must be between 5 and 15', 400);
     if ($maxPlayers < 2)                 errorResponse('max_players must be at least 2', 400);
 
@@ -83,8 +84,7 @@ function handleCreateGame(): void {
         $db->commit();
         jsonResponse([
             'game_id'   => (int)$gameId,
-            'status'    => 'waiting_setup',
-            'grid_size' => $gridSize
+            'status'    => 'waiting_setup'
         ], 201);
 
     } catch (PDOException $e) {
@@ -97,6 +97,7 @@ function handleJoinGame(int $gameId): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
+    if ($gameId <= 0) errorResponse('Game not found', 404);
     if (!isset($body['player_id'])) errorResponse('player_id is required', 400);
     if (!is_int($body['player_id'])) errorResponse('player_id must be an integer', 400);
     $playerId = (int)$body['player_id'];
@@ -137,6 +138,8 @@ function handleGetGame(int $gameId): void {
     $db = getDB();
 
     try {
+        if ($gameId <= 0) errorResponse('Game not found', 404);
+
         $stmt = $db->prepare('SELECT * FROM games WHERE game_id = ?');
         $stmt->execute([$gameId]);
         $game = $stmt->fetch();
@@ -215,6 +218,8 @@ function handleGetGamePlayers(int $gameId): void {
     $db = getDB();
 
     try {
+        if ($gameId <= 0) errorResponse('Game not found', 404);
+
         $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
         $stmt->execute([$gameId]);
         if (!$stmt->fetch()) errorResponse('Game not found', 404);
@@ -257,6 +262,8 @@ function handleGetGameBoards(int $gameId): void {
     $db = getDB();
 
     try {
+        if ($gameId <= 0) errorResponse('Game not found', 404);
+
         $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
         $stmt->execute([$gameId]);
         if (!$stmt->fetch()) errorResponse('Game not found', 404);
@@ -346,6 +353,8 @@ function handleGetShips(int $gameId): void {
     if (!$playerId) errorResponse('player_id is required', 400);
 
     try {
+        if ($gameId <= 0) errorResponse('Game not found', 404);
+
         $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
         $stmt->execute([$gameId]);
         if (!$stmt->fetch()) errorResponse('Game not found', 404);
@@ -382,6 +391,7 @@ function handlePlaceShips(int $gameId): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
+    if ($gameId <= 0) errorResponse('Game not found', 404);
     if (!isset($body['player_id']))                         errorResponse('player_id is required', 400);
     if (!is_int($body['player_id']))                        errorResponse('player_id must be an integer', 400);
     if (!isset($body['ships']) || !is_array($body['ships'])) errorResponse('ships array is required', 400);
@@ -468,6 +478,7 @@ function handleFire(int $gameId): void {
     $db = getDB();
     $body = json_decode(file_get_contents('php://input'), true);
 
+    if ($gameId <= 0) errorResponse('Game not found', 404);
     if (!isset($body['player_id'])) errorResponse('player_id is required', 400);
     if (!isset($body['row']))      errorResponse('row is required', 400);
     if (!isset($body['col']))      errorResponse('col is required', 400);
@@ -486,7 +497,7 @@ function handleFire(int $gameId): void {
 
         if (!$game)                                 errorResponse('Game not found', 404);
         if ($game['status'] === 'finished')         errorResponse('Game is not active', 400);
-        if ($game['status'] === 'waiting_setup')    errorResponse('Ships have not been placed', 403);
+        if ($game['status'] === 'waiting_setup')    errorResponse('Ships have not been placed', 400);
         if ($game['status'] !== 'playing')          errorResponse('Game is not active', 400);
 
         // Bounds check first

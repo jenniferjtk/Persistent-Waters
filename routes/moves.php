@@ -9,6 +9,10 @@ function handleGetMoves(int $gameId): void {
     $db = getDB();
 
     try {
+        if ($gameId <= 0) {
+            errorResponse('Game not found', 404);
+        }
+
         $stmt = $db->prepare('SELECT game_id FROM games WHERE game_id = ?');
         $stmt->execute([$gameId]);
 
