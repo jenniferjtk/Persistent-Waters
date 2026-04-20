@@ -1,29 +1,31 @@
-# Persistent Waters
+# Persistent Waters 🏴‍☠️
 ### CPSC 3750 – Distributed Multiplayer Battleship System
 
-**Team:** Persistent Waters  
+**Team:** Persistent Waters (0x07)  
 **Live API:** https://persistent-waters.onrender.com  
+**Live Client:** https://jenniferjgj.com/persistentwaters  
 **Repository:** https://github.com/jenniferjtk/Persistent-Waters
 
 ---
 
 ## Project Overview
 
-Persistent Waters is a distributed multiplayer Battleship system built for CPSC 3750. The system exposes a JSON REST API that manages multiplayer game sessions, player identities, ship placement, turn-based gameplay, and persistent player statistics across a relational PostgreSQL database.
+Persistent Waters is a distributed multiplayer Battleship system built for CPSC 3750. The system exposes a JSON REST API that manages multiplayer game sessions, player identities, ship placement, turn-based gameplay, and persistent player statistics across a relational PostgreSQL database. A pirate-themed single-page web client connects to the API and provides a full playable game experience.
 
 The project is developed in three phases:
 
-| Phase | Focus | Demo |
-|-------|-------|------|
-| Phase 1 | Server + Database API | March 31 / April 2 |
-| Phase 2 | Human Web Client | April 17 (on camera) |
-| Phase 3 | Autonomous Computer Player | April 21 / 23 |
+| Phase | Focus | Status |
+|-------|-------|--------|
+| Phase 1 | Server + Database API 
+| Phase 2 | Human Web Client 
 
 ---
 
 ## Architecture
 
-The backend is a modular PHP 8.2 application deployed via Docker on Render, backed by a PostgreSQL database.
+### Backend
+
+The backend is a modular PHP 8.2 application deployed via Docker on Render, backed by a managed PostgreSQL database.
 
 ```
 Persistent-Waters/
@@ -49,7 +51,22 @@ Persistent-Waters/
     └── validation.php      # Shared input validation helpers
 ```
 
-### Database Schema
+### Frontend
+
+The Phase 2 client is a vanilla JavaScript single-page application hosted on cPanel at `jenniferjgj.com/persistentwaters`. It is a single `index.html` file with no build step or framework dependencies.
+
+**Architecture decisions:**
+
+- **Single-file SPA** — all views (register, lobby, placement, game, stats) are stacked vertically in one HTML file. Navigation uses `scrollIntoView()` to snap to each section. Chosen over a multi-page approach to eliminate page reloads and simplify cPanel deployment.
+- **State management** — all client state lives in a single `state` object and a separate `gameplay` object for in-game data. No external state library.
+- **Player identity** — stored in `localStorage` so returning players are recognized across sessions without re-registering.
+- **Polling** — game state updates via `setInterval` calling `GET /api/games/{id}` and `GET /api/games/{id}/moves` every 4 seconds. Chosen over WebSockets to match the stateless PHP backend architecture. 4 seconds is imperceptible in a turn-based game.
+- **Turn enforcement** — compares `current_turn_index` from the server against the player's `turn_order` to enable or disable the fire button.
+- **Multi-game UX** — a player is in one active game at a time. The lobby shows all waiting games, a player joins one and stays until it ends.
+
+---
+
+## Database Schema
 
 | Table | Purpose |
 |-------|---------|
@@ -59,7 +76,7 @@ Persistent-Waters/
 | `ships` | Ship positions per player per game |
 | `moves` | Chronological shot log with timestamps |
 
-All tables enforce relational integrity via foreign key constraints. `game_players` uses a composite primary key `(game_id, player_id)`. Player `username` is globally unique at the database level.
+All tables enforce relational integrity via foreign key constraints. `game_players` uses a composite primary key `(game_id, player_id)`. Player `username` is globally unique at the database level. Sequences reset on `POST /api/reset` via `TRUNCATE ... RESTART IDENTITY`.
 
 ---
 
@@ -71,26 +88,29 @@ All endpoints accept and return JSON. Base path: `/api`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/reset` | Clear all game data and reset sequences |
-| POST | `/api/setup` | Initialize database schema (run once on new deployment) |
+| `POST` | `/api/reset` | Clear all game data and reset sequences |
+| `POST` | `/api/setup` | Initialize database schema (run once on new deployment) |
+| `GET` | `/api/health` | Health check — returns `{"status":"ok"}` |
 
 ### Players
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/players` | Create a player. Server generates `player_id` — client must not supply one |
-| GET | `/api/players/{id}/stats` | Retrieve lifetime stats for a player |
+| `POST` | `/api/players` | Create a player — server generates `player_id` |
+| `GET` | `/api/players` | List all players |
+| `GET` | `/api/players/{id}/stats` | Retrieve lifetime stats for a player |
 
 **Create player request:**
 ```json
 { "username": "dan" }
 ```
-**Create player response (201):**
+
+**Create player response `201`:**
 ```json
 { "player_id": 1 }
 ```
 
-**Stats response:**
+**Stats response `200`:**
 ```json
 {
   "games_played": 3,
@@ -106,20 +126,29 @@ All endpoints accept and return JSON. Base path: `/api`
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/games` | Create a game (`grid_size`: 5–15, `max_players` ≥ 1) |
-| POST | `/api/games/{id}/join` | Join a waiting game |
-| GET | `/api/games/{id}` | Get current game state |
-| POST | `/api/games/{id}/place` | Place exactly 3 ships (before game starts) |
-| POST | `/api/games/{id}/fire` | Fire at a coordinate (active games, correct turn only) |
-| GET | `/api/games/{id}/moves` | Full chronological move history |
+| `POST` | `/api/games` | Create a game (`grid_size`: 5–15, `max_players` ≥ 2) |
+| `GET` | `/api/games` | List all open games |
+| `POST` | `/api/games/{id}/join` | Join a waiting game |
+| `GET` | `/api/games/{id}` | Get current game state including players and turn info |
+| `GET` | `/api/games/{id}/players` | List all players in a game with turn order |
+| `GET` | `/api/games/{id}/boards` | Get ship and hit state for all players |
+| `POST` | `/api/games/{id}/place` | Place exactly 3 ships before game starts |
+| `POST` | `/api/games/{id}/fire` | Fire at a coordinate — active games, correct turn only |
+| `GET` | `/api/games/{id}/moves` | Full chronological move history |
 
-**Fire response (active game):**
-```json
-{ "result": "hit", "next_player_id": 3, "game_status": "active" }
+**Game status lifecycle:**
 ```
-**Fire response (winning shot):**
+waiting_setup → playing → finished
+```
+
+**Fire response (active game) `200`:**
 ```json
-{ "result": "hit", "next_player_id": null, "game_status": "finished", "winner_id": 2 }
+{ "result": "miss", "next_player_id": 2, "game_status": "playing" }
+```
+
+**Fire response (winning shot) `200`:**
+```json
+{ "result": "hit", "next_player_id": null, "game_status": "finished", "winner_id": 1 }
 ```
 
 ### Test Mode Endpoints
@@ -128,34 +157,47 @@ Test mode endpoints require the header:
 ```
 X-Test-Password: clemson-test-2026
 ```
-Both `/api/test/` and `/test/` URL prefixes are supported. Both `X-Test-Password` and `X-Test-Mode` headers are accepted.
+
+Both `/api/test/` and `/test/` URL prefixes are supported.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/test/games/{id}/restart` | Reset a game's ships and moves without touching player stats |
-| POST | `/api/test/games/{id}/ships` | Place ships at deterministic coordinates for grading |
-| GET | `/api/test/games/{id}/board/{player_id}` | Reveal all ship positions and hit state |
-
-Test endpoints exist to enable deterministic automated grading. They do not affect player statistics.
+| `POST` | `/api/test/games/{id}/restart` | Reset a game's ships and moves without touching player stats |
+| `POST` | `/api/test/games/{id}/ships` | Place ships at deterministic coordinates for grading |
+| `GET` | `/api/test/games/{id}/board/{player_id}` | Reveal all ship positions and hit state |
 
 ---
 
 ## Validation Rules
 
-- Client must **not** supply `player_id` on player creation → 400
-- Duplicate username returns the existing `player_id` → 200
-- Joining the same game twice → 400
-- Joining a different game with the same name reuses the same identity
-- `grid_size` must be 5–15, `max_players` ≥ 1
-- Exactly 3 ships required per player, no overlapping coordinates
-- Firing out of bounds, out of turn, or duplicate coordinates → 400 / 403
-- Invalid `player_id` → 403, valid `player_id` but wrong game → 403
+| Rule | Response |
+|------|----------|
+| Client supplies `player_id` on creation | `400` |
+| Duplicate username | `409` |
+| `grid_size` outside 5–15 | `400` |
+| `max_players` below 2 | `400` |
+| Non-existent `creator_id` | `400` |
+| Joining a non-existent game | `404` |
+| Joining with non-existent `player_id` | `404` |
+| Joining a full game | `400` |
+| Joining the same game twice | `400` |
+| Joining a game already in `playing` status | `400` |
+| Placing fewer or more than 3 ships | `400` |
+| Overlapping or out-of-bounds ship coordinates | `400` |
+| Placing ships twice | `409` |
+| Firing out of bounds | `400` |
+| Firing out of turn | `403` |
+| Firing at already-targeted coordinate | `409` |
+| Firing into a finished game | `400` |
+| Non-existent game or player | `404` |
 
 ---
 
 ## Deployment
 
-The application runs in a Docker container on Render connected to a Render-managed PostgreSQL database.
+### Production
+
+The application runs in a Docker container on Render connected to a Render-managed PostgreSQL database in the Ohio region.
 
 **Environment variables required:**
 
@@ -164,12 +206,32 @@ The application runs in a Docker container on Render connected to a Render-manag
 | `DATABASE_URL` | Full PostgreSQL connection string (set by Render) |
 | `TEST_MODE` | `true` to enable test endpoints |
 
-**Local development:**
+**First-time setup on a new Render deployment:**
+```bash
+curl -s -X POST https://persistent-waters.onrender.com/api/setup
+```
+
+**Reset database state before grading:**
+```bash
+curl -s -X POST https://persistent-waters.onrender.com/api/reset
+```
+
+### Local Development
+
 ```bash
 cd /path/to/Persistent-Waters
 php -S localhost:8000 router.php
 ```
-Requires local PostgreSQL with `battleship` database and `battleship_user` credentials as defined in `config/database.php`.
+
+Requires local PostgreSQL with credentials as defined in `config/database.php`. Alternatively, point `DATABASE_URL` at the Render database for local testing against production data.
+
+---
+
+## Testing Strategy
+
+- **Phase 1** — Instructor autograder (Gradescope) across three checkpoints: Foundations, Identity & Logic, Persistence & Stress. Checkpoint A: 24.8/25. Checkpoint B: 17/18.
+- **Phase 2** — Class-wide pool autograder (142 tests from 30 teams). Pool tests contain contradictory expectations across teams — documented and escalated to instructor. Instructor REF test suite scores reflect actual spec compliance.
+- **Local testing** — two-browser simulation using Chrome + Chrome Incognito for multiplayer flow verification. `curl` for endpoint-level verification of status codes and response bodies.
 
 ---
 
@@ -177,14 +239,14 @@ Requires local PostgreSQL with `battleship` database and `battleship_user` crede
 
 | Name | Role |
 |------|------|
-| Owen Schuyler | Backend / Architecture Lead |
-| Jennifer Tk | Frontend / Database |
+| Jennifer Johnson | Frontend, database schema, backend API, deployment, hosting |
+| Owen Schuyler | Backend architecture, game logic, gameplay view, turn flow |
 
-**Owen Schuyler — Backend / Architecture Lead**  
-Responsible for overall backend architecture, API contract definition, request/response structure, core game lifecycle logic, turn rotation and elimination rules, routing, and validation logic.
+**Jennifer Johnson**  
+Responsible for the Phase 2 web client player registration, lobby, ship placement grid, stats view, and cPanel hosting. Also owns database schema design, PostgreSQL setup, API endpoints, and deployment infrastructure on Render.
 
-**Jennifer Tk — Frontend / Database**  
-Responsible for relational database schema design, PostgreSQL setup and migration, database query implementation, deployment infrastructure, and the Phase 2 web client interface and statistics display.
+**Owen Schuyler**  
+Responsible for backend API architecture, core game lifecycle logic, turn rotation, elimination rules, routing, validation, and the Phase 2 gameplay view including firing mechanic, live board display, hit/miss rendering, and polling.
 
 ---
 
@@ -192,29 +254,7 @@ Responsible for relational database schema design, PostgreSQL setup and migratio
 
 | Tool | Usage |
 |------|-------|
-| Claude (claude.ai) | Architecture planning, implementation assistance, debugging, code review, deployment troubleshooting |
-| ChatGPT | Architecture planning, API design validation, test scenario generation |
+| Claude (claude.ai) | Architecture planning, implementation, debugging, deployment troubleshooting, test analysis |
+| ChatGPT | API design validation, test scenario generation |
 
-AI tools are used as engineering assistants. All architectural decisions, database schema design, validation logic, and testing strategies are owned and verified by the human developers. AI-generated output is always reviewed before integration.
-
----
-
-## Current Status (Phase 1 — Checkpoint A)
-
-**Completed:**
-- Full API routing structure
-- PostgreSQL schema with all constraints and foreign keys
-- Player identity endpoints (create, stats)
-- Game creation and join logic
-- Ship placement validation
-- Move execution with turn rotation and elimination
-- Move logging with timestamps
-- Player statistics (games, wins, losses, shots, hits, accuracy)
-- Test mode endpoints for deterministic grading
-- Docker deployment on Render
-
-**Remaining Phase 1 work:**
-- Expanded edge-case validation
-- Concurrency and stress testing
-- Final autograder alignment
-
+AI tools are used as engineering assistants. All architectural decisions, schema design, validation logic, and testing strategies are owned and verified by the human developers. AI output is always reviewed before integration.
