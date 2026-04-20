@@ -16,10 +16,8 @@ The project is developed in three phases:
 
 | Phase | Focus | Status |
 |-------|-------|--------|
-| Phase 1 | Server + Database API 
-| Phase 2 | Human Web Client 
-
----
+| Phase 1 | Server + Database API | Complete |
+| Phase 2 | Human Web Client | Complete |
 
 ## Architecture
 
