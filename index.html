@@ -27,6 +27,16 @@
       --body:      'Source Sans 3', sans-serif;
     }
 
+    body.light-mode {
+      --navy:      #f0f4f8;
+      --navy2:     #e2e8f0;
+      --navy3:     #d0dae8;
+      --parchment: #1a202c;
+      --parchment2:#2d3748;
+      --mist:      #4a5568;
+      --border:    rgba(0,0,0,0.15);
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html { scroll-behavior: smooth; }
@@ -715,12 +725,12 @@
     .game-board td.miss::after { content: 'o'; color: var(--mist); }
 
     .game-board td.own-ship {
-      background: rgba(201,168,76,0.72);
+      background: rgba(45,90,27,0.72);
       border-color: var(--gold);
-      color: var(--navy);
+      color: #ffffff;
     }
 
-    .game-board td.own-ship::after { content: 'S'; font-weight: 700; }
+    .game-board td.own-ship::after { content: '⚓'; font-weight: 700; }
 
     .game-board td.locked {
       cursor: not-allowed;
@@ -936,6 +946,46 @@
     .alert-success { color: #4caf50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.08); }
     .alert-info { color: var(--gold); border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); }
 
+    /* ── GAME OVER OVERLAY ── */
+    @keyframes gameOverFade {
+      0%   { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; pointer-events: none; }
+    }
+
+    .game-over-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--pirate);
+      font-size: clamp(4rem, 15vw, 9rem);
+      letter-spacing: 0.08em;
+      animation: gameOverFade 2.5s ease forwards;
+    }
+
+    .game-over-overlay.victory {
+      display: flex;
+      background: rgba(201,168,76,0.92);
+      color: var(--navy);
+    }
+
+    .game-over-overlay.victory::after {
+      content: 'VICTORY';
+    }
+
+    .game-over-overlay.defeat {
+      display: flex;
+      background: rgba(100,10,20,0.92);
+      color: var(--parchment);
+    }
+
+    .game-over-overlay.defeat::after {
+      content: 'DEFEATED';
+    }
+
     /* ── LOADING ── */
     .loading {
       display: inline-block;
@@ -987,6 +1037,7 @@
       <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span> <span id="nav-server" style="font-size:0.6rem; color:var(--mist); opacity:0.7; display:block; letter-spacing:0.05em; text-transform:none; font-family:var(--body)"></span></span>
       <button class="nav-btn" onclick="showView('lobby')">Lobby</button>
       <button class="nav-btn" onclick="showView('stats')">Stats</button>
+      <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
       <button class="nav-btn" onclick="logout()">Desert Ship</button>
     </div>
   </nav>
@@ -1224,6 +1275,8 @@
     </div>
   </div>
 
+  <div id="game-over-overlay" class="game-over-overlay"></div>
+
   <script>
     // ══════════════════════════════════════════════
     // CONFIG
@@ -1258,6 +1311,10 @@
     // INIT
     // ══════════════════════════════════════════════
     function init() {
+      if (localStorage.getItem('pw_theme') === 'light') {
+        document.body.classList.add('light-mode');
+        document.getElementById('theme-btn').textContent = '☾ Dark';
+      }
       const savedUrl = localStorage.getItem('pw_server_url');
       if (savedUrl) {
         API = savedUrl;
@@ -1304,6 +1361,12 @@
       try {
         document.getElementById('nav-server').textContent = new URL(API).hostname;
       } catch(e) {}
+    }
+
+    function toggleTheme() {
+      const light = document.body.classList.toggle('light-mode');
+      document.getElementById('theme-btn').textContent = light ? '☾ Dark' : '☀ Light';
+      localStorage.setItem('pw_theme', light ? 'light' : 'dark');
     }
 
     function logout() {
@@ -1705,6 +1768,7 @@
       gameplay.boards = [];
       gameplay.selectedTarget = null;
       gameplay.lastWinnerId = null;
+      gameplay.overlayShown = false;
       gameplay.playerNames[state.playerId] = state.username;
       document.getElementById('game-title-id').textContent = '#' + gameId;
       document.getElementById('selected-target').textContent = 'None';
@@ -1969,6 +2033,12 @@
         banner.classList.add('finished');
         const winnerName = gameplay.lastWinnerId ? nameForPlayer(gameplay.lastWinnerId) : 'The last fleet standing';
         banner.textContent = winnerName + ' has claimed these waters.';
+        if (!gameplay.overlayShown) {
+          gameplay.overlayShown = true;
+          const overlay = document.getElementById('game-over-overlay');
+          overlay.className = 'game-over-overlay ' + (gameplay.lastWinnerId === state.playerId ? 'victory' : 'defeat');
+          setTimeout(() => { overlay.className = 'game-over-overlay'; }, 2600);
+        }
         return;
       }
 
