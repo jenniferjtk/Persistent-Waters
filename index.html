@@ -1078,6 +1078,7 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .placement-layout, .game-layout { grid-template-columns: 1fr; }
+      .game-boards-row { grid-template-columns: 1fr; }
       .create-game-fields { grid-template-columns: 1fr; }
       .stats-layout { grid-template-columns: 1fr 1fr; }
       .grid-cell { width: 2rem; height: 2rem; }
@@ -1257,29 +1258,29 @@
       <div class="alert alert-error" id="game-alert"></div>
       <div class="turn-banner" id="turn-banner">Checking the wind...</div>
 
-      <div class="game-layout">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem">
         <div>
-          <p class="section-eyebrow" style="margin-bottom:1rem">All Boards</p>
-          <div class="player-boards" id="player-boards">
-            <div class="empty-state" style="padding:1.5rem">
-              <p>Boards will appear once the crews are mustered.</p>
-            </div>
-          </div>
-
-          <div class="game-board-wrap" style="margin-top:1.5rem">
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Your Waters — Fire Here</p>
+          <div class="game-board-wrap">
             <table class="game-board" id="game-board" aria-label="Battleship firing grid"></table>
           </div>
+        </div>
+        <div id="opponent-board-wrap">
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Opponent Fleet</p>
+          <div id="opponent-mini-container" style="border:2px solid var(--gold); display:inline-block"></div>
+        </div>
+      </div>
+
+      <div class="game-layout" style="grid-template-columns: minmax(0,1fr) 320px">
+        <div>
           <p class="game-status-text" id="game-status-text">Select a target when your turn arrives.</p>
           <div class="card" style="margin-top:1rem">
             <p class="section-eyebrow" style="margin-bottom:0.75rem">Move History</p>
             <div class="move-log" id="game-move-log">
-              <div class="empty-state" style="padding:1.5rem">
-                <p>No cannon fire yet.</p>
-              </div>
+              <div class="empty-state" style="padding:1.5rem"><p>No cannon fire yet.</p></div>
             </div>
           </div>
         </div>
-
         <aside class="game-side">
           <div class="card card-gold">
             <p class="section-eyebrow" style="margin-bottom:0.75rem">Cannon Orders</p>
@@ -1288,9 +1289,7 @@
               <div>Your turn order: <strong id="your-turn-order">Unknown</strong></div>
               <div>Current turn: <strong id="current-turn-label">Unknown</strong></div>
             </div>
-            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled>
-              Fire
-            </button>
+            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled>Fire</button>
             <p class="game-status-text" id="fire-status"></p>
           </div>
         </aside>
@@ -2197,33 +2196,50 @@
     }
 
     function renderPlayerBoards() {
-      const wrap = document.getElementById('player-boards');
-      if (!gameplay.boards.length) {
-        wrap.innerHTML = '<div class="empty-state" style="padding:1.5rem"><p>Boards will appear once the crews are mustered.</p></div>';
-        return;
+      const container = document.getElementById('opponent-mini-container');
+      if (!container) return;
+      if (!gameplay.boards.length) { container.innerHTML = ''; return; }
+
+      const opponentBoard = gameplay.boards.find(b => parseInt(b.player_id) !== state.playerId);
+      if (!opponentBoard) { container.innerHTML = ''; return; }
+
+      container.innerHTML = '';
+      container.appendChild(buildOpponentBoard(opponentBoard));
+    }
+
+    function buildOpponentBoard(board) {
+      const table = document.createElement('table');
+      table.className = 'game-board';
+      table.style.border = 'none';
+
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.appendChild(document.createElement('th'));
+      for (let col = 0; col < state.gridSize; col++) {
+        const th = document.createElement('th');
+        th.textContent = String.fromCharCode(65 + col);
+        headRow.appendChild(th);
       }
+      thead.appendChild(headRow);
+      table.appendChild(thead);
 
-      wrap.innerHTML = '';
-      gameplay.boards.forEach(board => {
-        const panel = document.createElement('div');
-        panel.className = 'player-board';
-
-        const title = document.createElement('div');
-        title.className = 'player-board-title';
-
-        const name = document.createElement('span');
-        name.textContent = board.player_id === state.playerId ? 'Your Board' : nameForPlayer(board.player_id);
-
-        const status = document.createElement('span');
-        status.className = 'player-board-status';
-        status.textContent = board.is_eliminated ? 'Eliminated' : 'Order ' + board.turn_order;
-
-        title.appendChild(name);
-        title.appendChild(status);
-        panel.appendChild(title);
-        panel.appendChild(buildMiniBoard(board));
-        wrap.appendChild(panel);
-      });
+      const tbody = document.createElement('tbody');
+      for (let row = 0; row < state.gridSize; row++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = row + 1;
+        tr.appendChild(th);
+        for (let col = 0; col < state.gridSize; col++) {
+          const td = document.createElement('td');
+          const key = coordKey(row, col);
+          const move = gameplay.moves.find(m => coordKey(m.row, m.col) === key && parseInt(m.player_id) !== parseInt(board.player_id));
+          if (move) td.classList.add(move.result === 'hit' ? 'hit' : 'miss');
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
     }
 
     function buildMiniBoard(board) {
