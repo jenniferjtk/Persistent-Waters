@@ -103,6 +103,14 @@
       background: rgba(0,0,0,0.1);
     }
 
+    body.light-mode .section-eyebrow {
+      color: #7a5c1a;
+    }
+
+    body.light-mode .section-eyebrow::before {
+      background: #7a5c1a;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html { scroll-behavior: smooth; }
@@ -1264,7 +1272,7 @@
           <div id="opponent-mini-container" style="border:2px solid var(--gold); display:inline-block"></div>
         </div>
         <div>
-          <p class="section-eyebrow" style="margin-bottom:0.5rem">Enemy Waters</p>
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Enemy Waters — Click to Fire</p>
           <div class="game-board-wrap">
             <table class="game-board" id="game-board" aria-label="Battleship firing grid"></table>
           </div>
@@ -1897,11 +1905,6 @@
         return;
       }
 
-      if (ownShipAt(row, col)) {
-        setFireStatus('That mark is one of your own ships.', 'error');
-        return;
-      }
-
       gameplay.selectedTarget = { row, col };
       document.getElementById('selected-target').textContent = formatCoord(row, col);
       setFireStatus('Target locked. Give the order to fire.', '');
@@ -2129,19 +2132,16 @@
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
         const move = moveAt(row, col);
-        const ownShip = ownShipAt(row, col);
 
         cell.className = '';
         if (move) {
           cell.classList.add(move.result === 'hit' ? 'hit' : 'miss');
-        } else if (ownShip) {
-          cell.classList.add('own-ship');
-        }
-        if (selected && selected.row === row && selected.col === col) {
-          cell.classList.add('selected');
-        }
-        if (locked || move || ownShip) {
           cell.classList.add('locked');
+        } else {
+          if (selected && selected.row === row && selected.col === col) {
+            cell.classList.add('selected');
+          }
+          if (locked) cell.classList.add('locked');
         }
       });
     }
