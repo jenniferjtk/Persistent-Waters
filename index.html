@@ -984,7 +984,7 @@
   <nav class="navbar" id="navbar" style="display:none">
     <span class="nav-title">☠ Persistent Waters</span>
     <div class="nav-right">
-      <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span></span>
+      <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span> <span id="nav-server" style="font-size:0.6rem; color:var(--mist); opacity:0.7; display:block; letter-spacing:0.05em; text-transform:none; font-family:var(--body)"></span></span>
       <button class="nav-btn" onclick="showView('lobby')">Lobby</button>
       <button class="nav-btn" onclick="showView('stats')">Stats</button>
       <button class="nav-btn" onclick="logout()">Desert Ship</button>
@@ -1002,6 +1002,18 @@
       <div class="divider" style="margin: 1.5rem 0"></div>
 
       <div class="register-form card">
+        <div class="input-group">
+          <label class="input-label">Server</label>
+          <div style="display:flex; gap:0.5rem; align-items:stretch">
+            <select class="input-field" id="server-select" onchange="onServerSelectChange()" style="flex:1">
+              <option value="https://persistent-waters.onrender.com">persistent-waters.onrender.com</option>
+              <option value="custom">Custom URL...</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="testConnection()" style="white-space:nowrap; flex-shrink:0">Test</button>
+          </div>
+          <input class="input-field" id="custom-server-url" type="url" placeholder="https://your-server.com" style="display:none; margin-top:0.5rem"/>
+          <p id="conn-status" style="font-size:0.78rem; margin-top:0.35rem; min-height:1rem; color:var(--mist)"></p>
+        </div>
         <div class="input-group">
           <label class="input-label" for="reg-username">Captain's Name</label>
           <input class="input-field" id="reg-username" type="text" placeholder="e.g. BlackBeard" autocomplete="off" maxlength="30"/>
@@ -1216,7 +1228,7 @@
     // ══════════════════════════════════════════════
     // CONFIG
     // ══════════════════════════════════════════════
-    const API = 'https://persistent-waters.onrender.com';
+    let API = localStorage.getItem('pw_server_url') || 'https://persistent-waters.onrender.com';
 
     // ══════════════════════════════════════════════
     // STATE
@@ -1246,6 +1258,20 @@
     // INIT
     // ══════════════════════════════════════════════
     function init() {
+      const savedUrl = localStorage.getItem('pw_server_url');
+      if (savedUrl) {
+        API = savedUrl;
+        const sel = document.getElementById('server-select');
+        let found = false;
+        for (const opt of sel.options) {
+          if (opt.value === savedUrl) { sel.value = savedUrl; found = true; break; }
+        }
+        if (!found) {
+          sel.value = 'custom';
+          document.getElementById('custom-server-url').value = savedUrl;
+          document.getElementById('custom-server-url').style.display = 'block';
+        }
+      }
       const savedId = localStorage.getItem('pw_player_id');
       const savedName = localStorage.getItem('pw_username');
       if (savedId && savedName) {
@@ -1275,11 +1301,16 @@
     // ══════════════════════════════════════════════
     function updateNavPlayer() {
       document.getElementById('nav-username').textContent = state.username;
+      try {
+        document.getElementById('nav-server').textContent = new URL(API).hostname;
+      } catch(e) {}
     }
 
     function logout() {
       localStorage.removeItem('pw_player_id');
       localStorage.removeItem('pw_username');
+      localStorage.removeItem('pw_server_url');
+      API = 'https://persistent-waters.onrender.com';
       state.playerId = null;
       state.username = null;
       showView('register');
@@ -1288,6 +1319,33 @@
     // ══════════════════════════════════════════════
     // REGISTER
     // ══════════════════════════════════════════════
+    function getSelectedServerUrl() {
+      const sel = document.getElementById('server-select');
+      if (sel.value === 'custom') {
+        return document.getElementById('custom-server-url').value.trim().replace(/\/$/, '');
+      }
+      return sel.value;
+    }
+
+    function onServerSelectChange() {
+      const sel = document.getElementById('server-select');
+      document.getElementById('custom-server-url').style.display = sel.value === 'custom' ? 'block' : 'none';
+      document.getElementById('conn-status').textContent = '';
+    }
+
+    async function testConnection() {
+      const url = getSelectedServerUrl();
+      const statusEl = document.getElementById('conn-status');
+      if (!url) { statusEl.textContent = 'Enter a URL first.'; return; }
+      statusEl.textContent = 'Testing...';
+      try {
+        const res = await fetch(url + '/api/players', { signal: AbortSignal.timeout(5000) });
+        statusEl.textContent = res.ok ? '✅ Live' : '❌ Unreachable';
+      } catch(e) {
+        statusEl.textContent = '❌ Unreachable';
+      }
+    }
+
     async function register() {
       const username = document.getElementById('reg-username').value.trim();
       const statusEl = document.getElementById('reg-status');
@@ -1298,6 +1356,15 @@
         statusEl.className = 'register-status';
         return;
       }
+
+      const serverUrl = getSelectedServerUrl();
+      if (!serverUrl) {
+        statusEl.textContent = 'Enter a valid server URL.';
+        statusEl.className = 'register-status';
+        return;
+      }
+      API = serverUrl;
+      localStorage.setItem('pw_server_url', serverUrl);
 
       btn.disabled = true;
       statusEl.textContent = '';
