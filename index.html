@@ -1259,15 +1259,15 @@
       <div class="turn-banner" id="turn-banner">Checking the wind...</div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem">
+        <div id="opponent-board-wrap">
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Your Fleet</p>
+          <div id="opponent-mini-container" style="border:2px solid var(--gold); display:inline-block"></div>
+        </div>
         <div>
-          <p class="section-eyebrow" style="margin-bottom:0.5rem">Your Waters — Fire Here</p>
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Enemy Waters</p>
           <div class="game-board-wrap">
             <table class="game-board" id="game-board" aria-label="Battleship firing grid"></table>
           </div>
-        </div>
-        <div id="opponent-board-wrap">
-          <p class="section-eyebrow" style="margin-bottom:0.5rem">Opponent Fleet</p>
-          <div id="opponent-mini-container" style="border:2px solid var(--gold); display:inline-block"></div>
         </div>
       </div>
 
@@ -2212,6 +2212,10 @@
       table.className = 'game-board';
       table.style.border = 'none';
 
+      const ownBoard = gameplay.boards.find(b => parseInt(b.player_id) === state.playerId);
+      const shipKeys = new Set((ownBoard?.ships || []).map(s => coordKey(s.row, s.col)));
+      const hitKeys = new Set((ownBoard?.hits || []).map(s => coordKey(s.row, s.col)));
+
       const thead = document.createElement('thead');
       const headRow = document.createElement('tr');
       headRow.appendChild(document.createElement('th'));
@@ -2231,9 +2235,13 @@
         tr.appendChild(th);
         for (let col = 0; col < state.gridSize; col++) {
           const td = document.createElement('td');
+          td.style.cursor = 'default';
           const key = coordKey(row, col);
-          const move = gameplay.moves.find(m => coordKey(m.row, m.col) === key && parseInt(m.player_id) !== parseInt(board.player_id));
-          if (move) td.classList.add(move.result === 'hit' ? 'hit' : 'miss');
+          if (hitKeys.has(key)) {
+            td.classList.add('hit');
+          } else if (shipKeys.has(key)) {
+            td.classList.add('own-ship');
+          }
           tr.appendChild(td);
         }
         tbody.appendChild(tr);
