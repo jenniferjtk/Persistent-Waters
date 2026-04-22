@@ -37,8 +37,40 @@
       --border:    rgba(0,0,0,0.15);
     }
 
+    body.light-mode .card,
+    body.light-mode .create-game-panel,
+    body.light-mode .game-board,
+    body.light-mode .move-log,
+    body.light-mode .player-board,
+    body.light-mode .game-row,
+    body.light-mode .games-grid,
+    body.light-mode .ship-slot,
+    body.light-mode .turn-banner,
+    body.light-mode .stat-box {
+      background: rgba(255,255,255,0.75) !important;
+      border-color: rgba(0,0,0,0.15);
+    }
+
+    body.light-mode .game-board td {
+      background: rgba(255,255,255,0.6);
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    body.light-mode .game-board td.own-ship {
+      background: rgba(45,90,27,0.8);
+    }
+
+    body.light-mode .game-board td:hover {
+      background: rgba(201,168,76,0.2);
+    }
+
+    body.light-mode .mini-board td {
+      background: rgba(255,255,255,0.5);
+      border-color: rgba(0,0,0,0.1);
+    }
+
     body.light-mode .input-field {
-      background: rgba(255,255,255,0.85);
+      background: rgba(255,255,255,0.9);
       border-color: rgba(0,0,0,0.2);
       color: #1a202c;
     }
@@ -50,6 +82,14 @@
     body.light-mode select.input-field option {
       background: #e2e8f0;
       color: #1a202c;
+    }
+
+    body.light-mode .navbar {
+      background: rgba(240,244,248,0.97);
+    }
+
+    body.light-mode .accuracy-bar {
+      background: rgba(0,0,0,0.1);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
