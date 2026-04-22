@@ -60,6 +60,17 @@
       background: rgba(45,90,27,0.8);
     }
 
+    body.light-mode .game-board td.hit {
+      background: rgba(185,28,28,0.85) !important;
+      border-color: #b91c1c !important;
+      color: #ffffff;
+    }
+
+    body.light-mode .game-board td.miss {
+      background: rgba(74,111,165,0.35) !important;
+      border-color: rgba(74,111,165,0.6) !important;
+    }
+
     body.light-mode .game-board td:hover {
       background: rgba(201,168,76,0.2);
     }
@@ -1248,7 +1259,14 @@
 
       <div class="game-layout">
         <div>
-          <div class="game-board-wrap">
+          <p class="section-eyebrow" style="margin-bottom:1rem">All Boards</p>
+          <div class="player-boards" id="player-boards">
+            <div class="empty-state" style="padding:1.5rem">
+              <p>Boards will appear once the crews are mustered.</p>
+            </div>
+          </div>
+
+          <div class="game-board-wrap" style="margin-top:1.5rem">
             <table class="game-board" id="game-board" aria-label="Battleship firing grid"></table>
           </div>
           <p class="game-status-text" id="game-status-text">Select a target when your turn arrives.</p>
@@ -1258,13 +1276,6 @@
               <div class="empty-state" style="padding:1.5rem">
                 <p>No cannon fire yet.</p>
               </div>
-            </div>
-          </div>
-
-          <p class="section-eyebrow" style="margin-top:1.5rem; margin-bottom:1rem">All Boards</p>
-          <div class="player-boards" id="player-boards">
-            <div class="empty-state" style="padding:1.5rem">
-              <p>Boards will appear once the crews are mustered.</p>
             </div>
           </div>
         </div>
