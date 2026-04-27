@@ -330,7 +330,7 @@
     }
 
     .btn:disabled {
-      opacity: 0.7;
+      opacity: 0.4;
       cursor: not-allowed;
       transform: none;
     }
@@ -367,7 +367,7 @@
     }
 
     .input-field::placeholder {
-      color: rgba(143,168,200,0.8);
+      color: rgba(143,168,200,0.4);
     }
 
     /* ── CARDS ── */
@@ -796,7 +796,7 @@
       cursor: default;
     }
 
-    .game-board td.miss::after { content: 'o'; color: var(--parchment); }
+    .game-board td.miss::after { content: 'o'; color: var(--mist); }
 
     .game-board td.own-ship {
       background: rgba(45,90,27,0.72);
@@ -898,7 +898,7 @@
       border-color: rgba(143,168,200,0.5);
     }
 
-    .mini-board td.miss::after { content: 'o'; color: var(--parchment); }
+    .mini-board td.miss::after { content: 'o'; color: var(--mist); }
 
     .mini-board td.ship {
       background: rgba(201,168,76,0.75);
@@ -1106,28 +1106,21 @@
 <body>
 
   <!-- NAV (hidden on register) -->
-  <nav class="navbar" id="navbar" style="display:none" aria-label="Main navigation">
+  <nav class="navbar" id="navbar" style="display:none">
     <span class="nav-title">☠ Persistent Waters</span>
     <div class="nav-right">
-<<<<<<< HEAD
-      <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span></span>
-      <button class="nav-btn" onclick="showView('lobby')" aria-label="Open lobby">Lobby</button>
-      <button class="nav-btn" onclick="showView('stats')" aria-label="Open stats">Stats</button>
-      <button class="nav-btn" onclick="logout()" aria-label="Log out and desert ship">Desert Ship</button>
-=======
       <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span> <span id="nav-server" style="font-size:0.6rem; color:var(--mist); opacity:0.7; display:block; letter-spacing:0.05em; text-transform:none; font-family:var(--body)"></span></span>
       <button class="nav-btn" onclick="showView('lobby')">Lobby</button>
       <button class="nav-btn" onclick="showView('stats')">Stats</button>
       <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
       <button class="nav-btn" onclick="logout()">Desert Ship</button>
->>>>>>> e1caed2f4a2a263eed2c437f24f48db0a315a45c
     </div>
   </nav>
 
   <!-- ════════════════════════════════ REGISTER VIEW ════════════════════════════════ -->
   <div id="view-register" class="view active">
     <div class="register-box">
-      <span class="skull-icon" aria-hidden="true">☠</span>
+      <span class="skull-icon">☠</span>
   
       <h1 class="section-title">Persistent Waters</h1>
       <p class="section-sub" style="text-align:center; margin: 0 auto 0">A multiplayer Battleship game. Claim your name, captain your fleet.</p>
@@ -1139,25 +1132,7 @@
           <label class="input-label">Server</label>
           <div style="display:flex; gap:0.5rem; align-items:stretch">
             <select class="input-field" id="server-select" onchange="onServerSelectChange()" style="flex:1">
-              <option value="https://persistent-waters.onrender.com">Team0x07 — Our Server (persistent-waters)</option>
-              <option value="https://battleship-server-18q1.onrender.com">Team0x00 — Shrayas Raju</option>
-              <option value="https://battleship.koon.us">Team0x01 — Max Koon &amp; Parker Estes</option>
-              <option value="https://finalproject-virusoutbreak-3bwa.onrender.com">Team0x02 — Mir Patel &amp; St Angelo Davis</option>
-              <option value="https://finalproject3750.onrender.com">Team0x03 — Anthony Martino &amp; Ian Sincoff</option>
-              <option value="https://webdevgroupproj.onrender.com">Team0x04 — Evan Racz &amp; Truc Le</option>
-              <option value="https://cpsc3720finalproject.onrender.com">Team0x05 — Mason Price &amp; Shihab Abdelrahim</option>
-              <option value="https://three750final.onrender.com">Team0x06 — Jude Slade &amp; Alex Lake</option>
-              <option value="https://p01--backend--zm8jxh5c8bph.code.run">Team0x08 — Nathan Kitchens &amp; Johan Zapata</option>
-              <option value="https://lightslategray-dogfish-869967.hostingersite.com">Team0x09 — Taylor Carter &amp; Kevin Murphy</option>
-              <option value="https://battleship-1-qpm6.onrender.com">Team0x0A — Anabel Thompson &amp; Gabriella Borjas</option>
-              <option value="https://cpsc.loosesocket.com">Team0x0B — Bryce Dickson &amp; James Kluttz</option>
-              <option value="https://battleship-advanced.onrender.com">Team0x0C — Aryan Kapoor &amp; Roman Pasqualone</option>
-              <option value="https://vibe-hunter.com">Team0x0D — Pascual Sebastian &amp; Tian Xue</option>
-              <option value="https://cpsc3750-battleshipproject.onrender.com">Team0x0E — Andrew Hwang &amp; Jack Huber</option>
-              <option value="https://cpsc-3750-battleship-final-project-phase1.onrender.com">Team0x0F — Anthony Frialde &amp; Christian Johnston</option>
-              <option value="https://capstone3750-production.up.railway.app">Team0x10 — Justin Hooker &amp; Seth Stamper</option>
-              <option value="https://battleship-cpsc3750.onrender.com">Team0x11 — Ayden Sabol &amp; Jade Ashley</option>
-              <option value="https://final-project-7xwd.onrender.com">Team0x12 — Jack Stivers &amp; Shaun Whitt</option>
+              <option value="https://persistent-waters.onrender.com">persistent-waters.onrender.com</option>
               <option value="custom">Custom URL...</option>
             </select>
             <button class="btn btn-ghost btn-sm" type="button" onclick="testConnection()" style="white-space:nowrap; flex-shrink:0">Test</button>
@@ -1169,10 +1144,10 @@
           <label class="input-label" for="reg-username">Captain's Name</label>
           <input class="input-field" id="reg-username" type="text" placeholder="e.g. BlackBeard" autocomplete="off" maxlength="30"/>
         </div>
-        <button class="btn btn-primary" style="width:100%" onclick="register()" id="reg-btn" aria-label="Enlist with captain name">
+        <button class="btn btn-primary" style="width:100%" onclick="register()" id="reg-btn">
           ⚓ Enlist
         </button>
-        <p class="register-status" id="reg-status" role="status" aria-live="polite"></p>
+        <p class="register-status" id="reg-status"></p>
       </div>
 
       <p style="font-size:0.75rem; color:var(--mist); margin-top:1rem">
@@ -1190,7 +1165,7 @@
           <h2 class="section-title" style="font-size:2.2rem">Battle Lobby</h2>
           <p class="section-sub" style="margin-bottom:0">Join an open engagement or commission a new battle.</p>
         </div>
-        <button class="btn btn-ghost" onclick="loadLobby()" aria-label="Refresh open engagements">⟳ Refresh</button>
+        <button class="btn btn-ghost" onclick="loadLobby()">⟳ Refresh</button>
       </div>
 
       <!-- Create Game -->
@@ -1198,26 +1173,26 @@
         <p class="section-eyebrow" style="margin-bottom:1rem">Commission New Battle</p>
         <div class="create-game-fields">
           <div class="input-group" style="margin-bottom:0">
-            <label class="input-label" for="grid-size">Grid Size (5-15)</label>
+            <label class="input-label">Grid Size (5-15)</label>
             <input class="input-field" id="grid-size" type="number" min="5" max="15" value="8"/>
           </div>
           <div class="input-group" style="margin-bottom:0">
-            <label class="input-label" for="max-players">Max Players</label>
+            <label class="input-label">Max Players</label>
             <input class="input-field" id="max-players" type="number" min="2" max="10" value="2"/>
           </div>
-          <button class="btn btn-gold" onclick="createGame()" id="create-btn" aria-label="Commission a new battle">
+          <button class="btn btn-gold" onclick="createGame()" id="create-btn">
             ⚓ Commission
           </button>
         </div>
-        <div class="alert alert-error" id="create-error" role="alert" aria-live="assertive"></div>
-        <div class="alert alert-success" id="create-success" role="status" aria-live="polite"></div>
+        <div class="alert alert-error" id="create-error"></div>
+        <div class="alert alert-success" id="create-success"></div>
       </div>
 
       <!-- Games List -->
       <p class="section-eyebrow" style="margin-bottom:1rem">Open Engagements</p>
       <div id="games-list">
         <div class="empty-state">
-          <span class="skull-icon" aria-hidden="true">⚓</span>
+          <span class="skull-icon">⚓</span>
           <p>Loading the seas...</p>
         </div>
       </div>
@@ -1230,10 +1205,10 @@
       <p class="section-eyebrow">Battle Preparation</p>
       <h2 class="section-title" style="font-size:2.2rem">Deploy Your Fleet</h2>
       <p class="section-sub">Click 3 cells to place your ships. Choose wisely, Captain.</p>
-      <button class="btn btn-ghost btn-sm" onclick="showView('lobby')" aria-label="Return to lobby">Back to Lobby</button>
+      <button class="btn btn-ghost btn-sm" onclick="showView('lobby')">Back to Lobby</button>
 
       <div class="divider"></div>
-      <div class="alert" id="place-alert" role="alert" aria-live="assertive"></div>
+      <div class="alert" id="place-alert"></div>
 
       <div class="placement-layout">
         <!-- Grid -->
@@ -1252,10 +1227,10 @@
               <div class="ship-slot" id="slot-2"><div class="ship-dot"></div> Ship 3</div>
             </div>
             <p class="placement-status" id="place-status">Select 3 cells on the grid</p>
-            <button class="btn btn-primary" style="width:100%; margin-top:0.5rem" id="confirm-place-btn" disabled onclick="confirmPlacement()" aria-label="Deploy fleet">
+            <button class="btn btn-primary" style="width:100%; margin-top:0.5rem" id="confirm-place-btn" disabled onclick="confirmPlacement()">
               ⚔ Deploy Fleet
             </button>
-            <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem" onclick="clearShips()" aria-label="Clear ship placement">
+            <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem" onclick="clearShips()">
               Clear
             </button>
           </div>
@@ -1282,14 +1257,14 @@
           <p class="section-sub" id="game-subtitle" style="margin-bottom:0">Awaiting the battle report.</p>
         </div>
         <div style="display:flex; gap:0.75rem; align-items:flex-start; flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="showView('lobby')" aria-label="Return to lobby">Back to Lobby</button>
-          <button class="btn btn-ghost btn-sm" onclick="refreshGameNow()" aria-label="Refresh battle state">Refresh</button>
+          <button class="btn btn-ghost btn-sm" onclick="showView('lobby')">Back to Lobby</button>
+          <button class="btn btn-ghost btn-sm" onclick="refreshGameNow()">Refresh</button>
         </div>
       </div>
 
       <div class="divider"></div>
-      <div class="alert alert-error" id="game-alert" role="alert" aria-live="assertive"></div>
-      <div class="turn-banner" id="turn-banner" role="status" aria-live="polite">Checking the wind...</div>
+      <div class="alert alert-error" id="game-alert"></div>
+      <div class="turn-banner" id="turn-banner">Checking the wind...</div>
 
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem">
         <div id="opponent-board-wrap">
@@ -1322,15 +1297,8 @@
               <div>Your turn order: <strong id="your-turn-order">Unknown</strong></div>
               <div>Current turn: <strong id="current-turn-label">Unknown</strong></div>
             </div>
-<<<<<<< HEAD
-            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled aria-label="Fire at selected target">
-              Fire
-            </button>
-            <p class="game-status-text" id="fire-status" role="status" aria-live="polite"></p>
-=======
             <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled>Fire</button>
             <p class="game-status-text" id="fire-status"></p>
->>>>>>> e1caed2f4a2a263eed2c437f24f48db0a315a45c
           </div>
         </aside>
       </div>
@@ -1375,7 +1343,7 @@
       </div>
 
       <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap">
-        <button class="btn btn-ghost" onclick="showView('lobby')" aria-label="Return to lobby">Back to Lobby</button>
+        <button class="btn btn-ghost" onclick="showView('lobby')">Back to Lobby</button>
       </div>
     </div>
   </div>
@@ -1580,7 +1548,7 @@
     // ══════════════════════════════════════════════
     async function loadLobby() {
       const listEl = document.getElementById('games-list');
-      listEl.innerHTML = '<div class="empty-state"><span class="skull-icon" aria-hidden="true">⚓</span><p>Scanning the seas...</p></div>';
+      listEl.innerHTML = '<div class="empty-state"><span class="skull-icon">⚓</span><p>Scanning the seas...</p></div>';
 
       try {
         const res = await fetch(API + '/api/games');
@@ -1588,7 +1556,7 @@
         const games = data.games || [];
 
         if (games.length === 0) {
-          listEl.innerHTML = '<div class="empty-state"><span class="skull-icon" aria-hidden="true">☠</span><p>No open battles. Commission one above.</p></div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="skull-icon">☠</span><p>No open battles. Commission one above.</p></div>';
           return;
         }
 
@@ -1609,7 +1577,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:0.75rem">
               <span class="game-status-pill pill-waiting">Waiting</span>
-              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size}, ${g.active_players})" aria-label="Board battle #${g.game_id}">
+              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size}, ${g.active_players})">
                 ⚔ Board
               </button>
             </div>
@@ -1716,14 +1684,12 @@
       // Col labels (A-O)
       const spacer = document.createElement('div');
       spacer.style.width = '2.5rem';
-      spacer.setAttribute('aria-hidden', 'true');
       colLabels.appendChild(spacer);
 
       for (let c = 0; c < size; c++) {
         const lbl = document.createElement('div');
         lbl.className = 'grid-col-label';
         lbl.textContent = String.fromCharCode(65 + c);
-        lbl.setAttribute('aria-hidden', 'true');
         colLabels.appendChild(lbl);
       }
 
@@ -1735,7 +1701,6 @@
         const rowLbl = document.createElement('div');
         rowLbl.className = 'grid-row-label';
         rowLbl.textContent = r + 1;
-        rowLbl.setAttribute('aria-hidden', 'true');
         row.appendChild(rowLbl);
 
         for (let c = 0; c < size; c++) {
@@ -1743,7 +1708,6 @@
           cell.className = 'grid-cell';
           cell.dataset.row = r;
           cell.dataset.col = c;
-          cell.setAttribute('aria-label', 'Place ship at ' + formatCoord(r, c));
           cell.addEventListener('click', () => toggleShip(r, c, cell));
           row.appendChild(cell);
         }
@@ -1893,12 +1857,9 @@
 
       const thead = document.createElement('thead');
       const headRow = document.createElement('tr');
-      const corner = document.createElement('th');
-      corner.setAttribute('aria-hidden', 'true');
-      headRow.appendChild(corner);
+      headRow.appendChild(document.createElement('th'));
       for (let col = 0; col < state.gridSize; col++) {
         const th = document.createElement('th');
-        th.scope = 'col';
         th.textContent = String.fromCharCode(65 + col);
         headRow.appendChild(th);
       }
@@ -1909,7 +1870,6 @@
       for (let row = 0; row < state.gridSize; row++) {
         const tr = document.createElement('tr');
         const th = document.createElement('th');
-        th.scope = 'row';
         th.textContent = row + 1;
         tr.appendChild(th);
 
@@ -2332,7 +2292,6 @@
       const table = document.createElement('table');
       table.className = 'mini-board';
       const isOwnBoard = parseInt(board.player_id) === state.playerId;
-      table.setAttribute('aria-label', (isOwnBoard ? 'Your board' : nameForPlayer(board.player_id) + ' board'));
       const shipKeys = new Set((board.ships || []).map(ship => coordKey(ship.row, ship.col)));
       const hitKeys = new Set((board.hits || []).map(ship => coordKey(ship.row, ship.col)));
       const missKeys = new Set((gameplay.moves || [])
