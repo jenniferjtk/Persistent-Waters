@@ -525,9 +525,9 @@ function handleFire(int $gameId): void {
         // regardless of whose turn it currently is
         $stmt = $db->prepare('
             SELECT move_id FROM moves
-            WHERE game_id = ? AND row_pos = ? AND col_pos = ?
+            WHERE game_id = ? AND player_id = ? AND row_pos = ? AND col_pos = ?
         ');
-        $stmt->execute([$gameId, $row, $col]);
+        $stmt->execute([$gameId, $playerId, $row, $col]);
         if ($stmt->fetch()) errorResponse('Duplicate move: already fired at this coordinate', 409);
 
         // Turn enforcement
