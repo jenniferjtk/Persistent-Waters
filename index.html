@@ -2384,7 +2384,11 @@
     }
 
     function moveAt(row, col) {
-      return gameplay.moves.find(move => parseInt(move.row) === row && parseInt(move.col) === col);
+      return gameplay.moves.find(move =>
+        parseInt(move.player_id) === state.playerId &&
+        parseInt(move.row) === row &&
+        parseInt(move.col) === col
+      );
     }
 
     function ownShipAt(row, col) {
