@@ -1132,7 +1132,25 @@
           <label class="input-label">Server</label>
           <div style="display:flex; gap:0.5rem; align-items:stretch">
             <select class="input-field" id="server-select" onchange="onServerSelectChange()" style="flex:1">
-              <option value="https://persistent-waters.onrender.com">persistent-waters.onrender.com</option>
+              <option value="https://persistent-waters.onrender.com">Team0x07 — Our Server (persistent-waters)</option>
+              <option value="https://battleship-server-18q1.onrender.com">Team0x00 — Shrayas Raju</option>
+              <option value="https://battleship.koon.us">Team0x01 — Max Koon &amp; Parker Estes</option>
+              <option value="https://finalproject-virusoutbreak-3bwa.onrender.com">Team0x02 — Mir Patel &amp; St Angelo Davis</option>
+              <option value="https://finalproject3750.onrender.com">Team0x03 — Anthony Martino &amp; Ian Sincoff</option>
+              <option value="https://webdevgroupproj.onrender.com">Team0x04 — Evan Racz &amp; Truc Le</option>
+              <option value="https://cpsc3720finalproject.onrender.com">Team0x05 — Mason Price &amp; Shihab Abdelrahim</option>
+              <option value="https://three750final.onrender.com">Team0x06 — Jude Slade &amp; Alex Lake</option>
+              <option value="https://p01--backend--zm8jxh5c8bph.code.run">Team0x08 — Nathan Kitchens &amp; Johan Zapata</option>
+              <option value="https://lightslategray-dogfish-869967.hostingersite.com">Team0x09 — Taylor Carter &amp; Kevin Murphy</option>
+              <option value="https://battleship-1-qpm6.onrender.com">Team0x0A — Anabel Thompson &amp; Gabriella Borjas</option>
+              <option value="https://cpsc.loosesocket.com">Team0x0B — Bryce Dickson &amp; James Kluttz</option>
+              <option value="https://battleship-advanced.onrender.com">Team0x0C — Aryan Kapoor &amp; Roman Pasqualone</option>
+              <option value="https://vibe-hunter.com">Team0x0D — Pascual Sebastian &amp; Tian Xue</option>
+              <option value="https://cpsc3750-battleshipproject.onrender.com">Team0x0E — Andrew Hwang &amp; Jack Huber</option>
+              <option value="https://cpsc-3750-battleship-final-project-phase1.onrender.com">Team0x0F — Anthony Frialde &amp; Christian Johnston</option>
+              <option value="https://capstone3750-production.up.railway.app">Team0x10 — Justin Hooker &amp; Seth Stamper</option>
+              <option value="https://battleship-cpsc3750.onrender.com">Team0x11 — Ayden Sabol &amp; Jade Ashley</option>
+              <option value="https://final-project-7xwd.onrender.com">Team0x12 — Jack Stivers &amp; Shaun Whitt</option>
               <option value="custom">Custom URL...</option>
             </select>
             <button class="btn btn-ghost btn-sm" type="button" onclick="testConnection()" style="white-space:nowrap; flex-shrink:0">Test</button>
@@ -2200,14 +2218,11 @@
       if (!container) return;
       if (!gameplay.boards.length) { container.innerHTML = ''; return; }
 
-      const opponentBoard = gameplay.boards.find(b => parseInt(b.player_id) !== state.playerId);
-      if (!opponentBoard) { container.innerHTML = ''; return; }
-
       container.innerHTML = '';
-      container.appendChild(buildOpponentBoard(opponentBoard));
+      container.appendChild(buildOwnFleetBoard());
     }
 
-    function buildOpponentBoard(board) {
+    function buildOwnFleetBoard() {
       const table = document.createElement('table');
       table.className = 'game-board';
       table.style.border = 'none';
@@ -2241,6 +2256,47 @@
             td.classList.add('hit');
           } else if (shipKeys.has(key)) {
             td.classList.add('own-ship');
+          }
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
+    }
+
+    function buildOpponentBoard(board) {
+      const table = document.createElement('table');
+      table.className = 'game-board';
+      table.style.border = 'none';
+
+      // Moves fired BY the current player
+      const myMoves = gameplay.moves.filter(m => parseInt(m.player_id) === state.playerId);
+
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.appendChild(document.createElement('th'));
+      for (let col = 0; col < state.gridSize; col++) {
+        const th = document.createElement('th');
+        th.textContent = String.fromCharCode(65 + col);
+        headRow.appendChild(th);
+      }
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      for (let row = 0; row < state.gridSize; row++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = row + 1;
+        tr.appendChild(th);
+        for (let col = 0; col < state.gridSize; col++) {
+          const td = document.createElement('td');
+          td.style.cursor = 'default';
+          const key = coordKey(row, col);
+          const myMove = myMoves.find(m => coordKey(parseInt(m.row), parseInt(m.col)) === key);
+          if (myMove) {
+            td.classList.add(myMove.result === 'hit' ? 'hit' : 'miss');
           }
           tr.appendChild(td);
         }
