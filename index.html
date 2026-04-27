@@ -246,7 +246,7 @@
     }
 
     .btn:disabled {
-      opacity: 0.4;
+      opacity: 0.7;
       cursor: not-allowed;
       transform: none;
     }
@@ -283,7 +283,7 @@
     }
 
     .input-field::placeholder {
-      color: rgba(143,168,200,0.4);
+      color: rgba(143,168,200,0.8);
     }
 
     /* ── CARDS ── */
@@ -712,7 +712,7 @@
       cursor: default;
     }
 
-    .game-board td.miss::after { content: 'o'; color: var(--mist); }
+    .game-board td.miss::after { content: 'o'; color: var(--parchment); }
 
     .game-board td.own-ship {
       background: rgba(201,168,76,0.72);
@@ -814,7 +814,7 @@
       border-color: rgba(143,168,200,0.5);
     }
 
-    .mini-board td.miss::after { content: 'o'; color: var(--mist); }
+    .mini-board td.miss::after { content: 'o'; color: var(--parchment); }
 
     .mini-board td.ship {
       background: rgba(201,168,76,0.75);
@@ -981,20 +981,20 @@
 <body>
 
   <!-- NAV (hidden on register) -->
-  <nav class="navbar" id="navbar" style="display:none">
+  <nav class="navbar" id="navbar" style="display:none" aria-label="Main navigation">
     <span class="nav-title">☠ Persistent Waters</span>
     <div class="nav-right">
       <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span></span>
-      <button class="nav-btn" onclick="showView('lobby')">Lobby</button>
-      <button class="nav-btn" onclick="showView('stats')">Stats</button>
-      <button class="nav-btn" onclick="logout()">Desert Ship</button>
+      <button class="nav-btn" onclick="showView('lobby')" aria-label="Open lobby">Lobby</button>
+      <button class="nav-btn" onclick="showView('stats')" aria-label="Open stats">Stats</button>
+      <button class="nav-btn" onclick="logout()" aria-label="Log out and desert ship">Desert Ship</button>
     </div>
   </nav>
 
   <!-- ════════════════════════════════ REGISTER VIEW ════════════════════════════════ -->
   <div id="view-register" class="view active">
     <div class="register-box">
-      <span class="skull-icon">☠</span>
+      <span class="skull-icon" aria-hidden="true">☠</span>
   
       <h1 class="section-title">Persistent Waters</h1>
       <p class="section-sub" style="text-align:center; margin: 0 auto 0">A multiplayer Battleship game. Claim your name, captain your fleet.</p>
@@ -1006,10 +1006,10 @@
           <label class="input-label" for="reg-username">Captain's Name</label>
           <input class="input-field" id="reg-username" type="text" placeholder="e.g. BlackBeard" autocomplete="off" maxlength="30"/>
         </div>
-        <button class="btn btn-primary" style="width:100%" onclick="register()" id="reg-btn">
+        <button class="btn btn-primary" style="width:100%" onclick="register()" id="reg-btn" aria-label="Enlist with captain name">
           ⚓ Enlist
         </button>
-        <p class="register-status" id="reg-status"></p>
+        <p class="register-status" id="reg-status" role="status" aria-live="polite"></p>
       </div>
 
       <p style="font-size:0.75rem; color:var(--mist); margin-top:1rem">
@@ -1027,7 +1027,7 @@
           <h2 class="section-title" style="font-size:2.2rem">Battle Lobby</h2>
           <p class="section-sub" style="margin-bottom:0">Join an open engagement or commission a new battle.</p>
         </div>
-        <button class="btn btn-ghost" onclick="loadLobby()">⟳ Refresh</button>
+        <button class="btn btn-ghost" onclick="loadLobby()" aria-label="Refresh open engagements">⟳ Refresh</button>
       </div>
 
       <!-- Create Game -->
@@ -1035,26 +1035,26 @@
         <p class="section-eyebrow" style="margin-bottom:1rem">Commission New Battle</p>
         <div class="create-game-fields">
           <div class="input-group" style="margin-bottom:0">
-            <label class="input-label">Grid Size (5-15)</label>
+            <label class="input-label" for="grid-size">Grid Size (5-15)</label>
             <input class="input-field" id="grid-size" type="number" min="5" max="15" value="8"/>
           </div>
           <div class="input-group" style="margin-bottom:0">
-            <label class="input-label">Max Players</label>
+            <label class="input-label" for="max-players">Max Players</label>
             <input class="input-field" id="max-players" type="number" min="2" max="10" value="2"/>
           </div>
-          <button class="btn btn-gold" onclick="createGame()" id="create-btn">
+          <button class="btn btn-gold" onclick="createGame()" id="create-btn" aria-label="Commission a new battle">
             ⚓ Commission
           </button>
         </div>
-        <div class="alert alert-error" id="create-error"></div>
-        <div class="alert alert-success" id="create-success"></div>
+        <div class="alert alert-error" id="create-error" role="alert" aria-live="assertive"></div>
+        <div class="alert alert-success" id="create-success" role="status" aria-live="polite"></div>
       </div>
 
       <!-- Games List -->
       <p class="section-eyebrow" style="margin-bottom:1rem">Open Engagements</p>
       <div id="games-list">
         <div class="empty-state">
-          <span class="skull-icon">⚓</span>
+          <span class="skull-icon" aria-hidden="true">⚓</span>
           <p>Loading the seas...</p>
         </div>
       </div>
@@ -1067,10 +1067,10 @@
       <p class="section-eyebrow">Battle Preparation</p>
       <h2 class="section-title" style="font-size:2.2rem">Deploy Your Fleet</h2>
       <p class="section-sub">Click 3 cells to place your ships. Choose wisely, Captain.</p>
-      <button class="btn btn-ghost btn-sm" onclick="showView('lobby')">Back to Lobby</button>
+      <button class="btn btn-ghost btn-sm" onclick="showView('lobby')" aria-label="Return to lobby">Back to Lobby</button>
 
       <div class="divider"></div>
-      <div class="alert" id="place-alert"></div>
+      <div class="alert" id="place-alert" role="alert" aria-live="assertive"></div>
 
       <div class="placement-layout">
         <!-- Grid -->
@@ -1089,10 +1089,10 @@
               <div class="ship-slot" id="slot-2"><div class="ship-dot"></div> Ship 3</div>
             </div>
             <p class="placement-status" id="place-status">Select 3 cells on the grid</p>
-            <button class="btn btn-primary" style="width:100%; margin-top:0.5rem" id="confirm-place-btn" disabled onclick="confirmPlacement()">
+            <button class="btn btn-primary" style="width:100%; margin-top:0.5rem" id="confirm-place-btn" disabled onclick="confirmPlacement()" aria-label="Deploy fleet">
               ⚔ Deploy Fleet
             </button>
-            <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem" onclick="clearShips()">
+            <button class="btn btn-ghost" style="width:100%; margin-top:0.5rem" onclick="clearShips()" aria-label="Clear ship placement">
               Clear
             </button>
           </div>
@@ -1119,14 +1119,14 @@
           <p class="section-sub" id="game-subtitle" style="margin-bottom:0">Awaiting the battle report.</p>
         </div>
         <div style="display:flex; gap:0.75rem; align-items:flex-start; flex-wrap:wrap">
-          <button class="btn btn-ghost btn-sm" onclick="showView('lobby')">Back to Lobby</button>
-          <button class="btn btn-ghost btn-sm" onclick="refreshGameNow()">Refresh</button>
+          <button class="btn btn-ghost btn-sm" onclick="showView('lobby')" aria-label="Return to lobby">Back to Lobby</button>
+          <button class="btn btn-ghost btn-sm" onclick="refreshGameNow()" aria-label="Refresh battle state">Refresh</button>
         </div>
       </div>
 
       <div class="divider"></div>
-      <div class="alert alert-error" id="game-alert"></div>
-      <div class="turn-banner" id="turn-banner">Checking the wind...</div>
+      <div class="alert alert-error" id="game-alert" role="alert" aria-live="assertive"></div>
+      <div class="turn-banner" id="turn-banner" role="status" aria-live="polite">Checking the wind...</div>
 
       <div class="game-layout">
         <div>
@@ -1159,10 +1159,10 @@
               <div>Your turn order: <strong id="your-turn-order">Unknown</strong></div>
               <div>Current turn: <strong id="current-turn-label">Unknown</strong></div>
             </div>
-            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled>
+            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled aria-label="Fire at selected target">
               Fire
             </button>
-            <p class="game-status-text" id="fire-status"></p>
+            <p class="game-status-text" id="fire-status" role="status" aria-live="polite"></p>
           </div>
         </aside>
       </div>
@@ -1207,7 +1207,7 @@
       </div>
 
       <div style="margin-top:2rem; display:flex; gap:1rem; flex-wrap:wrap">
-        <button class="btn btn-ghost" onclick="showView('lobby')">Back to Lobby</button>
+        <button class="btn btn-ghost" onclick="showView('lobby')" aria-label="Return to lobby">Back to Lobby</button>
       </div>
     </div>
   </div>
@@ -1345,7 +1345,7 @@
     // ══════════════════════════════════════════════
     async function loadLobby() {
       const listEl = document.getElementById('games-list');
-      listEl.innerHTML = '<div class="empty-state"><span class="skull-icon">⚓</span><p>Scanning the seas...</p></div>';
+      listEl.innerHTML = '<div class="empty-state"><span class="skull-icon" aria-hidden="true">⚓</span><p>Scanning the seas...</p></div>';
 
       try {
         const res = await fetch(API + '/api/games');
@@ -1353,7 +1353,7 @@
         const games = data.games || [];
 
         if (games.length === 0) {
-          listEl.innerHTML = '<div class="empty-state"><span class="skull-icon">☠</span><p>No open battles. Commission one above.</p></div>';
+          listEl.innerHTML = '<div class="empty-state"><span class="skull-icon" aria-hidden="true">☠</span><p>No open battles. Commission one above.</p></div>';
           return;
         }
 
@@ -1374,7 +1374,7 @@
             </div>
             <div style="display:flex; align-items:center; gap:0.75rem">
               <span class="game-status-pill pill-waiting">Waiting</span>
-              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size}, ${g.active_players})">
+              <button class="btn btn-sm btn-primary" onclick="joinGame(${g.game_id}, ${g.grid_size}, ${g.active_players})" aria-label="Board battle #${g.game_id}">
                 ⚔ Board
               </button>
             </div>
@@ -1481,12 +1481,14 @@
       // Col labels (A-O)
       const spacer = document.createElement('div');
       spacer.style.width = '2.5rem';
+      spacer.setAttribute('aria-hidden', 'true');
       colLabels.appendChild(spacer);
 
       for (let c = 0; c < size; c++) {
         const lbl = document.createElement('div');
         lbl.className = 'grid-col-label';
         lbl.textContent = String.fromCharCode(65 + c);
+        lbl.setAttribute('aria-hidden', 'true');
         colLabels.appendChild(lbl);
       }
 
@@ -1498,6 +1500,7 @@
         const rowLbl = document.createElement('div');
         rowLbl.className = 'grid-row-label';
         rowLbl.textContent = r + 1;
+        rowLbl.setAttribute('aria-hidden', 'true');
         row.appendChild(rowLbl);
 
         for (let c = 0; c < size; c++) {
@@ -1505,6 +1508,7 @@
           cell.className = 'grid-cell';
           cell.dataset.row = r;
           cell.dataset.col = c;
+          cell.setAttribute('aria-label', 'Place ship at ' + formatCoord(r, c));
           cell.addEventListener('click', () => toggleShip(r, c, cell));
           row.appendChild(cell);
         }
@@ -1653,9 +1657,12 @@
 
       const thead = document.createElement('thead');
       const headRow = document.createElement('tr');
-      headRow.appendChild(document.createElement('th'));
+      const corner = document.createElement('th');
+      corner.setAttribute('aria-hidden', 'true');
+      headRow.appendChild(corner);
       for (let col = 0; col < state.gridSize; col++) {
         const th = document.createElement('th');
+        th.scope = 'col';
         th.textContent = String.fromCharCode(65 + col);
         headRow.appendChild(th);
       }
@@ -1666,6 +1673,7 @@
       for (let row = 0; row < state.gridSize; row++) {
         const tr = document.createElement('tr');
         const th = document.createElement('th');
+        th.scope = 'row';
         th.textContent = row + 1;
         tr.appendChild(th);
 
@@ -2027,6 +2035,7 @@
       const table = document.createElement('table');
       table.className = 'mini-board';
       const isOwnBoard = parseInt(board.player_id) === state.playerId;
+      table.setAttribute('aria-label', (isOwnBoard ? 'Your board' : nameForPlayer(board.player_id) + ' board'));
       const shipKeys = new Set((board.ships || []).map(ship => coordKey(ship.row, ship.col)));
       const hitKeys = new Set((board.hits || []).map(ship => coordKey(ship.row, ship.col)));
       const missKeys = new Set((gameplay.moves || [])
