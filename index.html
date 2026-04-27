@@ -27,6 +27,90 @@
       --body:      'Source Sans 3', sans-serif;
     }
 
+    body.light-mode {
+      --navy:      #f0f4f8;
+      --navy2:     #e2e8f0;
+      --navy3:     #d0dae8;
+      --parchment: #1a202c;
+      --parchment2:#2d3748;
+      --mist:      #4a5568;
+      --border:    rgba(0,0,0,0.15);
+    }
+
+    body.light-mode .card,
+    body.light-mode .create-game-panel,
+    body.light-mode .game-board,
+    body.light-mode .move-log,
+    body.light-mode .player-board,
+    body.light-mode .game-row,
+    body.light-mode .games-grid,
+    body.light-mode .ship-slot,
+    body.light-mode .turn-banner,
+    body.light-mode .stat-box {
+      background: rgba(255,255,255,0.75) !important;
+      border-color: rgba(0,0,0,0.15);
+    }
+
+    body.light-mode .game-board td {
+      background: rgba(255,255,255,0.6);
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    body.light-mode .game-board td.own-ship {
+      background: rgba(45,90,27,0.8);
+    }
+
+    body.light-mode .game-board td.hit {
+      background: rgba(185,28,28,0.85) !important;
+      border-color: #b91c1c !important;
+      color: #ffffff;
+    }
+
+    body.light-mode .game-board td.miss {
+      background: rgba(74,111,165,0.35) !important;
+      border-color: rgba(74,111,165,0.6) !important;
+    }
+
+    body.light-mode .game-board td:hover {
+      background: rgba(201,168,76,0.2);
+    }
+
+    body.light-mode .mini-board td {
+      background: rgba(255,255,255,0.5);
+      border-color: rgba(0,0,0,0.1);
+    }
+
+    body.light-mode .input-field {
+      background: rgba(255,255,255,0.9);
+      border-color: rgba(0,0,0,0.2);
+      color: #1a202c;
+    }
+
+    body.light-mode .input-field::placeholder {
+      color: rgba(0,0,0,0.35);
+    }
+
+    body.light-mode select.input-field option {
+      background: #e2e8f0;
+      color: #1a202c;
+    }
+
+    body.light-mode .navbar {
+      background: rgba(240,244,248,0.97);
+    }
+
+    body.light-mode .accuracy-bar {
+      background: rgba(0,0,0,0.1);
+    }
+
+    body.light-mode .section-eyebrow {
+      color: #7a5c1a;
+    }
+
+    body.light-mode .section-eyebrow::before {
+      background: #7a5c1a;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html { scroll-behavior: smooth; }
@@ -715,12 +799,12 @@
     .game-board td.miss::after { content: 'o'; color: var(--parchment); }
 
     .game-board td.own-ship {
-      background: rgba(201,168,76,0.72);
+      background: rgba(45,90,27,0.72);
       border-color: var(--gold);
-      color: var(--navy);
+      color: #ffffff;
     }
 
-    .game-board td.own-ship::after { content: 'S'; font-weight: 700; }
+    .game-board td.own-ship::after { content: '⚓'; font-weight: 700; }
 
     .game-board td.locked {
       cursor: not-allowed;
@@ -936,6 +1020,46 @@
     .alert-success { color: #4caf50; border-color: rgba(76,175,80,0.4); background: rgba(76,175,80,0.08); }
     .alert-info { color: var(--gold); border-color: rgba(201,168,76,0.4); background: rgba(201,168,76,0.08); }
 
+    /* ── GAME OVER OVERLAY ── */
+    @keyframes gameOverFade {
+      0%   { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; pointer-events: none; }
+    }
+
+    .game-over-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--pirate);
+      font-size: clamp(4rem, 15vw, 9rem);
+      letter-spacing: 0.08em;
+      animation: gameOverFade 2.5s ease forwards;
+    }
+
+    .game-over-overlay.victory {
+      display: flex;
+      background: rgba(201,168,76,0.92);
+      color: var(--navy);
+    }
+
+    .game-over-overlay.victory::after {
+      content: 'VICTORY';
+    }
+
+    .game-over-overlay.defeat {
+      display: flex;
+      background: rgba(100,10,20,0.92);
+      color: var(--parchment);
+    }
+
+    .game-over-overlay.defeat::after {
+      content: 'DEFEATED';
+    }
+
     /* ── LOADING ── */
     .loading {
       display: inline-block;
@@ -962,6 +1086,7 @@
     /* ── RESPONSIVE ── */
     @media (max-width: 768px) {
       .placement-layout, .game-layout { grid-template-columns: 1fr; }
+      .game-boards-row { grid-template-columns: 1fr; }
       .create-game-fields { grid-template-columns: 1fr; }
       .stats-layout { grid-template-columns: 1fr 1fr; }
       .grid-cell { width: 2rem; height: 2rem; }
@@ -984,10 +1109,18 @@
   <nav class="navbar" id="navbar" style="display:none" aria-label="Main navigation">
     <span class="nav-title">☠ Persistent Waters</span>
     <div class="nav-right">
+<<<<<<< HEAD
       <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span></span>
       <button class="nav-btn" onclick="showView('lobby')" aria-label="Open lobby">Lobby</button>
       <button class="nav-btn" onclick="showView('stats')" aria-label="Open stats">Stats</button>
       <button class="nav-btn" onclick="logout()" aria-label="Log out and desert ship">Desert Ship</button>
+=======
+      <span class="nav-player" id="nav-player-name">Captain <span id="nav-username"></span> <span id="nav-server" style="font-size:0.6rem; color:var(--mist); opacity:0.7; display:block; letter-spacing:0.05em; text-transform:none; font-family:var(--body)"></span></span>
+      <button class="nav-btn" onclick="showView('lobby')">Lobby</button>
+      <button class="nav-btn" onclick="showView('stats')">Stats</button>
+      <button class="nav-btn" id="theme-btn" onclick="toggleTheme()">☀ Light</button>
+      <button class="nav-btn" onclick="logout()">Desert Ship</button>
+>>>>>>> e1caed2f4a2a263eed2c437f24f48db0a315a45c
     </div>
   </nav>
 
@@ -1002,6 +1135,36 @@
       <div class="divider" style="margin: 1.5rem 0"></div>
 
       <div class="register-form card">
+        <div class="input-group">
+          <label class="input-label">Server</label>
+          <div style="display:flex; gap:0.5rem; align-items:stretch">
+            <select class="input-field" id="server-select" onchange="onServerSelectChange()" style="flex:1">
+              <option value="https://persistent-waters.onrender.com">Team0x07 — Our Server (persistent-waters)</option>
+              <option value="https://battleship-server-18q1.onrender.com">Team0x00 — Shrayas Raju</option>
+              <option value="https://battleship.koon.us">Team0x01 — Max Koon &amp; Parker Estes</option>
+              <option value="https://finalproject-virusoutbreak-3bwa.onrender.com">Team0x02 — Mir Patel &amp; St Angelo Davis</option>
+              <option value="https://finalproject3750.onrender.com">Team0x03 — Anthony Martino &amp; Ian Sincoff</option>
+              <option value="https://webdevgroupproj.onrender.com">Team0x04 — Evan Racz &amp; Truc Le</option>
+              <option value="https://cpsc3720finalproject.onrender.com">Team0x05 — Mason Price &amp; Shihab Abdelrahim</option>
+              <option value="https://three750final.onrender.com">Team0x06 — Jude Slade &amp; Alex Lake</option>
+              <option value="https://p01--backend--zm8jxh5c8bph.code.run">Team0x08 — Nathan Kitchens &amp; Johan Zapata</option>
+              <option value="https://lightslategray-dogfish-869967.hostingersite.com">Team0x09 — Taylor Carter &amp; Kevin Murphy</option>
+              <option value="https://battleship-1-qpm6.onrender.com">Team0x0A — Anabel Thompson &amp; Gabriella Borjas</option>
+              <option value="https://cpsc.loosesocket.com">Team0x0B — Bryce Dickson &amp; James Kluttz</option>
+              <option value="https://battleship-advanced.onrender.com">Team0x0C — Aryan Kapoor &amp; Roman Pasqualone</option>
+              <option value="https://vibe-hunter.com">Team0x0D — Pascual Sebastian &amp; Tian Xue</option>
+              <option value="https://cpsc3750-battleshipproject.onrender.com">Team0x0E — Andrew Hwang &amp; Jack Huber</option>
+              <option value="https://cpsc-3750-battleship-final-project-phase1.onrender.com">Team0x0F — Anthony Frialde &amp; Christian Johnston</option>
+              <option value="https://capstone3750-production.up.railway.app">Team0x10 — Justin Hooker &amp; Seth Stamper</option>
+              <option value="https://battleship-cpsc3750.onrender.com">Team0x11 — Ayden Sabol &amp; Jade Ashley</option>
+              <option value="https://final-project-7xwd.onrender.com">Team0x12 — Jack Stivers &amp; Shaun Whitt</option>
+              <option value="custom">Custom URL...</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="testConnection()" style="white-space:nowrap; flex-shrink:0">Test</button>
+          </div>
+          <input class="input-field" id="custom-server-url" type="url" placeholder="https://your-server.com" style="display:none; margin-top:0.5rem"/>
+          <p id="conn-status" style="font-size:0.78rem; margin-top:0.35rem; min-height:1rem; color:var(--mist)"></p>
+        </div>
         <div class="input-group">
           <label class="input-label" for="reg-username">Captain's Name</label>
           <input class="input-field" id="reg-username" type="text" placeholder="e.g. BlackBeard" autocomplete="off" maxlength="30"/>
@@ -1128,29 +1291,29 @@
       <div class="alert alert-error" id="game-alert" role="alert" aria-live="assertive"></div>
       <div class="turn-banner" id="turn-banner" role="status" aria-live="polite">Checking the wind...</div>
 
-      <div class="game-layout">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; margin-bottom:1.5rem">
+        <div id="opponent-board-wrap">
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Your Fleet</p>
+          <div id="opponent-mini-container" style="border:2px solid var(--gold); display:inline-block"></div>
+        </div>
         <div>
+          <p class="section-eyebrow" style="margin-bottom:0.5rem">Enemy Waters — Click to Fire</p>
           <div class="game-board-wrap">
             <table class="game-board" id="game-board" aria-label="Battleship firing grid"></table>
           </div>
+        </div>
+      </div>
+
+      <div class="game-layout" style="grid-template-columns: minmax(0,1fr) 320px">
+        <div>
           <p class="game-status-text" id="game-status-text">Select a target when your turn arrives.</p>
           <div class="card" style="margin-top:1rem">
             <p class="section-eyebrow" style="margin-bottom:0.75rem">Move History</p>
             <div class="move-log" id="game-move-log">
-              <div class="empty-state" style="padding:1.5rem">
-                <p>No cannon fire yet.</p>
-              </div>
-            </div>
-          </div>
-
-          <p class="section-eyebrow" style="margin-top:1.5rem; margin-bottom:1rem">All Boards</p>
-          <div class="player-boards" id="player-boards">
-            <div class="empty-state" style="padding:1.5rem">
-              <p>Boards will appear once the crews are mustered.</p>
+              <div class="empty-state" style="padding:1.5rem"><p>No cannon fire yet.</p></div>
             </div>
           </div>
         </div>
-
         <aside class="game-side">
           <div class="card card-gold">
             <p class="section-eyebrow" style="margin-bottom:0.75rem">Cannon Orders</p>
@@ -1159,10 +1322,15 @@
               <div>Your turn order: <strong id="your-turn-order">Unknown</strong></div>
               <div>Current turn: <strong id="current-turn-label">Unknown</strong></div>
             </div>
+<<<<<<< HEAD
             <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled aria-label="Fire at selected target">
               Fire
             </button>
             <p class="game-status-text" id="fire-status" role="status" aria-live="polite"></p>
+=======
+            <button class="btn btn-primary" style="width:100%" id="fire-btn" onclick="fireSelectedCell()" disabled>Fire</button>
+            <p class="game-status-text" id="fire-status"></p>
+>>>>>>> e1caed2f4a2a263eed2c437f24f48db0a315a45c
           </div>
         </aside>
       </div>
@@ -1212,11 +1380,13 @@
     </div>
   </div>
 
+  <div id="game-over-overlay" class="game-over-overlay"></div>
+
   <script>
     // ══════════════════════════════════════════════
     // CONFIG
     // ══════════════════════════════════════════════
-    const API = 'https://persistent-waters.onrender.com';
+    let API = localStorage.getItem('pw_server_url') || 'https://persistent-waters.onrender.com';
 
     // ══════════════════════════════════════════════
     // STATE
@@ -1246,6 +1416,24 @@
     // INIT
     // ══════════════════════════════════════════════
     function init() {
+      if (localStorage.getItem('pw_theme') === 'light') {
+        document.body.classList.add('light-mode');
+        document.getElementById('theme-btn').textContent = '☾ Dark';
+      }
+      const savedUrl = localStorage.getItem('pw_server_url');
+      if (savedUrl) {
+        API = savedUrl;
+        const sel = document.getElementById('server-select');
+        let found = false;
+        for (const opt of sel.options) {
+          if (opt.value === savedUrl) { sel.value = savedUrl; found = true; break; }
+        }
+        if (!found) {
+          sel.value = 'custom';
+          document.getElementById('custom-server-url').value = savedUrl;
+          document.getElementById('custom-server-url').style.display = 'block';
+        }
+      }
       const savedId = localStorage.getItem('pw_player_id');
       const savedName = localStorage.getItem('pw_username');
       if (savedId && savedName) {
@@ -1275,11 +1463,22 @@
     // ══════════════════════════════════════════════
     function updateNavPlayer() {
       document.getElementById('nav-username').textContent = state.username;
+      try {
+        document.getElementById('nav-server').textContent = new URL(API).hostname;
+      } catch(e) {}
+    }
+
+    function toggleTheme() {
+      const light = document.body.classList.toggle('light-mode');
+      document.getElementById('theme-btn').textContent = light ? '☾ Dark' : '☀ Light';
+      localStorage.setItem('pw_theme', light ? 'light' : 'dark');
     }
 
     function logout() {
       localStorage.removeItem('pw_player_id');
       localStorage.removeItem('pw_username');
+      localStorage.removeItem('pw_server_url');
+      API = 'https://persistent-waters.onrender.com';
       state.playerId = null;
       state.username = null;
       showView('register');
@@ -1288,6 +1487,33 @@
     // ══════════════════════════════════════════════
     // REGISTER
     // ══════════════════════════════════════════════
+    function getSelectedServerUrl() {
+      const sel = document.getElementById('server-select');
+      if (sel.value === 'custom') {
+        return document.getElementById('custom-server-url').value.trim().replace(/\/$/, '');
+      }
+      return sel.value;
+    }
+
+    function onServerSelectChange() {
+      const sel = document.getElementById('server-select');
+      document.getElementById('custom-server-url').style.display = sel.value === 'custom' ? 'block' : 'none';
+      document.getElementById('conn-status').textContent = '';
+    }
+
+    async function testConnection() {
+      const url = getSelectedServerUrl();
+      const statusEl = document.getElementById('conn-status');
+      if (!url) { statusEl.textContent = 'Enter a URL first.'; return; }
+      statusEl.textContent = 'Testing...';
+      try {
+        const res = await fetch(url + '/api/players', { signal: AbortSignal.timeout(5000) });
+        statusEl.textContent = res.ok ? '✅ Live' : '❌ Unreachable';
+      } catch(e) {
+        statusEl.textContent = '❌ Unreachable';
+      }
+    }
+
     async function register() {
       const username = document.getElementById('reg-username').value.trim();
       const statusEl = document.getElementById('reg-status');
@@ -1298,6 +1524,15 @@
         statusEl.className = 'register-status';
         return;
       }
+
+      const serverUrl = getSelectedServerUrl();
+      if (!serverUrl) {
+        statusEl.textContent = 'Enter a valid server URL.';
+        statusEl.className = 'register-status';
+        return;
+      }
+      API = serverUrl;
+      localStorage.setItem('pw_server_url', serverUrl);
 
       btn.disabled = true;
       statusEl.textContent = '';
@@ -1642,6 +1877,7 @@
       gameplay.boards = [];
       gameplay.selectedTarget = null;
       gameplay.lastWinnerId = null;
+      gameplay.overlayShown = false;
       gameplay.playerNames[state.playerId] = state.username;
       document.getElementById('game-title-id').textContent = '#' + gameId;
       document.getElementById('selected-target').textContent = 'None';
@@ -1706,11 +1942,6 @@
 
       if (moveAt(row, col)) {
         setFireStatus('That water has already been fired upon.', 'error');
-        return;
-      }
-
-      if (ownShipAt(row, col)) {
-        setFireStatus('That mark is one of your own ships.', 'error');
         return;
       }
 
@@ -1910,6 +2141,12 @@
         banner.classList.add('finished');
         const winnerName = gameplay.lastWinnerId ? nameForPlayer(gameplay.lastWinnerId) : 'The last fleet standing';
         banner.textContent = winnerName + ' has claimed these waters.';
+        if (!gameplay.overlayShown) {
+          gameplay.overlayShown = true;
+          const overlay = document.getElementById('game-over-overlay');
+          overlay.className = 'game-over-overlay ' + (gameplay.lastWinnerId === state.playerId ? 'victory' : 'defeat');
+          setTimeout(() => { overlay.className = 'game-over-overlay'; }, 2600);
+        }
         return;
       }
 
@@ -1935,19 +2172,16 @@
         const row = parseInt(cell.dataset.row);
         const col = parseInt(cell.dataset.col);
         const move = moveAt(row, col);
-        const ownShip = ownShipAt(row, col);
 
         cell.className = '';
         if (move) {
           cell.classList.add(move.result === 'hit' ? 'hit' : 'miss');
-        } else if (ownShip) {
-          cell.classList.add('own-ship');
-        }
-        if (selected && selected.row === row && selected.col === col) {
-          cell.classList.add('selected');
-        }
-        if (locked || move || ownShip) {
           cell.classList.add('locked');
+        } else {
+          if (selected && selected.row === row && selected.col === col) {
+            cell.classList.add('selected');
+          }
+          if (locked) cell.classList.add('locked');
         }
       });
     }
@@ -2002,33 +2236,96 @@
     }
 
     function renderPlayerBoards() {
-      const wrap = document.getElementById('player-boards');
-      if (!gameplay.boards.length) {
-        wrap.innerHTML = '<div class="empty-state" style="padding:1.5rem"><p>Boards will appear once the crews are mustered.</p></div>';
-        return;
+      const container = document.getElementById('opponent-mini-container');
+      if (!container) return;
+      if (!gameplay.boards.length) { container.innerHTML = ''; return; }
+
+      container.innerHTML = '';
+      container.appendChild(buildOwnFleetBoard());
+    }
+
+    function buildOwnFleetBoard() {
+      const table = document.createElement('table');
+      table.className = 'game-board';
+      table.style.border = 'none';
+
+      const ownBoard = gameplay.boards.find(b => parseInt(b.player_id) === state.playerId);
+      const shipKeys = new Set((ownBoard?.ships || []).map(s => coordKey(s.row, s.col)));
+      const hitKeys = new Set((ownBoard?.hits || []).map(s => coordKey(s.row, s.col)));
+
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.appendChild(document.createElement('th'));
+      for (let col = 0; col < state.gridSize; col++) {
+        const th = document.createElement('th');
+        th.textContent = String.fromCharCode(65 + col);
+        headRow.appendChild(th);
       }
+      thead.appendChild(headRow);
+      table.appendChild(thead);
 
-      wrap.innerHTML = '';
-      gameplay.boards.forEach(board => {
-        const panel = document.createElement('div');
-        panel.className = 'player-board';
+      const tbody = document.createElement('tbody');
+      for (let row = 0; row < state.gridSize; row++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = row + 1;
+        tr.appendChild(th);
+        for (let col = 0; col < state.gridSize; col++) {
+          const td = document.createElement('td');
+          td.style.cursor = 'default';
+          const key = coordKey(row, col);
+          if (hitKeys.has(key)) {
+            td.classList.add('hit');
+          } else if (shipKeys.has(key)) {
+            td.classList.add('own-ship');
+          }
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
+    }
 
-        const title = document.createElement('div');
-        title.className = 'player-board-title';
+    function buildOpponentBoard(board) {
+      const table = document.createElement('table');
+      table.className = 'game-board';
+      table.style.border = 'none';
 
-        const name = document.createElement('span');
-        name.textContent = board.player_id === state.playerId ? 'Your Board' : nameForPlayer(board.player_id);
+      // Moves fired BY the current player
+      const myMoves = gameplay.moves.filter(m => parseInt(m.player_id) === state.playerId);
 
-        const status = document.createElement('span');
-        status.className = 'player-board-status';
-        status.textContent = board.is_eliminated ? 'Eliminated' : 'Order ' + board.turn_order;
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      headRow.appendChild(document.createElement('th'));
+      for (let col = 0; col < state.gridSize; col++) {
+        const th = document.createElement('th');
+        th.textContent = String.fromCharCode(65 + col);
+        headRow.appendChild(th);
+      }
+      thead.appendChild(headRow);
+      table.appendChild(thead);
 
-        title.appendChild(name);
-        title.appendChild(status);
-        panel.appendChild(title);
-        panel.appendChild(buildMiniBoard(board));
-        wrap.appendChild(panel);
-      });
+      const tbody = document.createElement('tbody');
+      for (let row = 0; row < state.gridSize; row++) {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = row + 1;
+        tr.appendChild(th);
+        for (let col = 0; col < state.gridSize; col++) {
+          const td = document.createElement('td');
+          td.style.cursor = 'default';
+          const key = coordKey(row, col);
+          const myMove = myMoves.find(m => coordKey(parseInt(m.row), parseInt(m.col)) === key);
+          if (myMove) {
+            td.classList.add(myMove.result === 'hit' ? 'hit' : 'miss');
+          }
+          tr.appendChild(td);
+        }
+        tbody.appendChild(tr);
+      }
+      table.appendChild(tbody);
+      return table;
     }
 
     function buildMiniBoard(board) {

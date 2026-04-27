@@ -74,7 +74,11 @@ function handleCreatePlayer(): void {
         $existing = $stmt->fetch();
 
         if ($existing) {
-            errorResponse('Username already taken', 409);
+            $stmt2 = $db->prepare('SELECT player_id, username FROM players WHERE username = ?');
+            $stmt2->execute([$username]);
+            $player = $stmt2->fetch();
+            jsonResponse(['player_id' => (int)$player['player_id'], 'username' => $player['username']], 200);
+            return;
         }
 
         $stmt = $db->prepare('INSERT INTO players (username) VALUES (?) RETURNING player_id');
