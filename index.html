@@ -1947,7 +1947,12 @@
         return;
       }
 
-      if (moveAt(row, col)) {
+      const alreadyFiredByMe = gameplay.moves.find(m =>
+        parseInt(m.player_id) === state.playerId &&
+        parseInt(m.row) === row &&
+        parseInt(m.col) === col
+      );
+      if (alreadyFiredByMe) {
         setFireStatus('That water has already been fired upon.', 'error');
         return;
       }
@@ -2384,11 +2389,7 @@
     }
 
     function moveAt(row, col) {
-      return gameplay.moves.find(move =>
-        parseInt(move.player_id) === state.playerId &&
-        parseInt(move.row) === row &&
-        parseInt(move.col) === col
-      );
+      return gameplay.moves.find(move => parseInt(move.row) === row && parseInt(move.col) === col);
     }
 
     function ownShipAt(row, col) {
